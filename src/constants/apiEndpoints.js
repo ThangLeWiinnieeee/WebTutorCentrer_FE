@@ -39,6 +39,7 @@ const API_ENDPOINTS = {
     CREATE: "/classes",
     LIST: "/classes",
     SUBJECTS: "/classes/subjects",
+    PRICING_CONFIG: "/classes/pricing-config",
     DETAIL: (id) => `/classes/${id}`,
     MINE: "/classes/mine",
   },
