@@ -5,6 +5,7 @@ import HeroSearchBar from "@/features/tutors/components/HeroSearchBar";
 import TopTutorCard from "@/features/tutors/components/TopTutorCard";
 import TopThisMonthTutors from "@/features/tutors/components/TopThisMonthTutors";
 import IntroSections from "@/components/home/IntroSections";
+import FloatingContactBar from "@/components/shared/FloatingContactBar";
 import { getTopTutorsThunk, getNewTutorsThunk } from "@/features/tutors/store/tutorThunks";
 
 export default function HomePage() {
@@ -72,6 +73,9 @@ export default function HomePage() {
       <section className="bg-gray-50 py-12 md:py-16">
         <IntroSections />
       </section>
+
+      {/* Floating Contact Bar */}
+      <FloatingContactBar />
     </div>
   );
 }
