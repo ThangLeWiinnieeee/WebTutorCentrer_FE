@@ -1,8 +1,6 @@
-import { MINUTES_PER_SESSION_PRESETS } from '../schemas/classRequestSchema';
-
 const CLASS_REQUEST_FORM_DRAFT_STORAGE_KEY = 'webtutor:classRequestFormDraft:v1';
 
-export function loadClassRequestFormDraft(baseDefaults) {
+export function loadClassRequestFormDraft(baseDefaults, minutesPerSessionOptions = []) {
   if (typeof window === 'undefined') return baseDefaults;
   try {
     const raw = window.localStorage.getItem(CLASS_REQUEST_FORM_DRAFT_STORAGE_KEY);
@@ -11,7 +9,7 @@ export function loadClassRequestFormDraft(baseDefaults) {
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return baseDefaults;
     const merged = { ...baseDefaults, ...parsed };
     const m = Number(merged.minutesPerSession);
-    if (!MINUTES_PER_SESSION_PRESETS.includes(m)) {
+    if (minutesPerSessionOptions.length > 0 && !minutesPerSessionOptions.includes(m)) {
       merged.minutesPerSession = baseDefaults.minutesPerSession;
     }
     return merged;

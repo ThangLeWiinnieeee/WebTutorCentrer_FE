@@ -6,6 +6,7 @@ const classService = {
   create: (payload) => axiosInstance.post(API_ENDPOINTS.CLASSES.CREATE, payload),
   list: (params) => axiosInstance.get(API_ENDPOINTS.CLASSES.LIST, { params }),
   subjects: () => axiosInstance.get(API_ENDPOINTS.CLASSES.SUBJECTS),
+  pricingConfig: () => axiosInstance.get(API_ENDPOINTS.CLASSES.PRICING_CONFIG),
   detail: (id) => axiosInstance.get(API_ENDPOINTS.CLASSES.DETAIL(id)),
 };
 

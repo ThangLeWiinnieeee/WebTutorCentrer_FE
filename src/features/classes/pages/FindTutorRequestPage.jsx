@@ -47,10 +47,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SearchableSelect from '@/features/classes/components/SearchableSelect';
 import {
-  classRequestSchema,
+  buildClassRequestSchema,
   getDefaultClassRequestValues,
   getTodayIsoDateLocal,
-  MINUTES_PER_SESSION_PRESETS,
 } from '@/features/classes/schemas/classRequestSchema';
 import classService from '@/features/classes/services/classService';
 import { clearClassFlow } from '@/features/classes/store/classSlice';
@@ -798,12 +797,12 @@ const CustomDateField = ({ value, onChange }) => {
   );
 };
 
-const CustomMinutesField = ({ value, onChange }) => {
-  const normalizedValue = Number(value) || 90;
+const CustomMinutesField = ({ value, onChange, minuteOptions = [] }) => {
+  const normalizedValue = Number(value) || minuteOptions[0] || 90;
 
   return (
     <div className="flex flex-wrap gap-2">
-      {MINUTES_PER_SESSION_PRESETS.map((minute) => (
+      {minuteOptions.map((minute) => (
         <button
           key={minute}
           type="button"
@@ -822,7 +821,7 @@ const CustomMinutesField = ({ value, onChange }) => {
   );
 };
 
-const FindTutorRequestPage = () => {
+const FindTutorRequestFormContent = ({ pricingConfig }) => {
   const dispatch = useDispatch();
   const { quote, loadingQuote, creating, latestCreated, error } = useSelector((state) => state.classes);
   const [provinces, setProvinces] = useState([]);
@@ -831,9 +830,15 @@ const FindTutorRequestPage = () => {
   const ALL_SUBJECTS_VALUE = "__all_subjects__";
   const ALL_PROVINCES_VALUE = "__all_provinces__";
   const ALL_DISTRICTS_VALUE = "__all_districts__";
+  const minuteOptions = pricingConfig.minutesPerSessionOptions || [];
+  const classRequestSchema = useMemo(() => buildClassRequestSchema(pricingConfig), [pricingConfig]);
   const defaultFormValues = useMemo(
-    () => loadClassRequestFormDraft(getDefaultClassRequestValues()),
-    [],
+    () =>
+      loadClassRequestFormDraft(
+        getDefaultClassRequestValues(pricingConfig),
+        minuteOptions,
+      ),
+    [pricingConfig, minuteOptions],
   );
   const form = useForm({ resolver: zodResolver(classRequestSchema), defaultValues: defaultFormValues });
   const provinceCode = useWatch({ control: form.control, name: 'provinceCode' });
@@ -926,7 +931,7 @@ const FindTutorRequestPage = () => {
 
   const startNewClassRequest = () => {
     dispatch(clearClassFlow());
-    form.reset(getDefaultClassRequestValues());
+    form.reset(getDefaultClassRequestValues(pricingConfig));
   };
 
   if (latestCreated) {
@@ -1149,12 +1154,18 @@ const FindTutorRequestPage = () => {
                         <div>
                           <label className="mb-1.5 block text-sm font-medium text-slate-700">Thời lượng mỗi buổi *</label>
                           <p className="mb-1.5 text-xs text-slate-500">
-                            Chọn một mức: 60, 90, 120, 150 hoặc 180 phút
+                            Chọn một mức: {minuteOptions.join(", ")} phút
                           </p>
                           <Controller
                             name="minutesPerSession"
                             control={form.control}
-                            render={({ field }) => <CustomMinutesField value={field.value} onChange={field.onChange} />}
+                            render={({ field }) => (
+                              <CustomMinutesField
+                                value={field.value}
+                                onChange={field.onChange}
+                                minuteOptions={minuteOptions}
+                              />
+                            )}
                           />
                           {errors.minutesPerSession && <p className="mt-1 text-xs text-rose-600">{errors.minutesPerSession.message}</p>}
                         </div>
@@ -1473,6 +1484,46 @@ const FindTutorRequestPage = () => {
       </div>
     </div>
   );
+};
+
+const FindTutorRequestPage = () => {
+  const [pricingConfig, setPricingConfig] = useState(null);
+  const [pricingConfigError, setPricingConfigError] = useState(null);
+  const [loadingPricingConfig, setLoadingPricingConfig] = useState(true);
+
+  useEffect(() => {
+    classService
+      .pricingConfig()
+      .then((res) => {
+        const config = res.data?.data?.pricingConfig;
+        if (!config) {
+          setPricingConfigError("Không tải được cấu hình học phí");
+          return;
+        }
+        setPricingConfig(config);
+      })
+      .catch(() => setPricingConfigError("Không tải được cấu hình học phí"))
+      .finally(() => setLoadingPricingConfig(false));
+  }, []);
+
+  if (loadingPricingConfig) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center text-slate-600">
+        Đang tải cấu hình học phí...
+      </div>
+    );
+  }
+
+  if (!pricingConfig) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center">
+        <p className="text-rose-600">{pricingConfigError || "Không tải được cấu hình học phí"}</p>
+        <p className="mt-2 text-sm text-slate-500">Vui lòng thử lại sau hoặc liên hệ quản trị viên.</p>
+      </div>
+    );
+  }
+
+  return <FindTutorRequestFormContent pricingConfig={pricingConfig} />;
 };
 
 export default FindTutorRequestPage;
