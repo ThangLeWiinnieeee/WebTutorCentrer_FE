@@ -20,7 +20,7 @@ export const createClassThunk = createAsyncThunk(
       const res = await classService.create(payload);
       return res.data.data.classItem;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Không đăng được lớp mới");
+      return rejectWithValue(err.response?.data?.message || "Không đăng được lớp cần gia sư");
     }
   }
 );

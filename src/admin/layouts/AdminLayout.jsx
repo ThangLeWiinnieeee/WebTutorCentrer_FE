@@ -1,5 +1,6 @@
+import { createElement } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert } from "lucide-react";
+import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -7,7 +8,7 @@ import { logoutThunk } from "@/features/auth/store/authThunks";
 import { getInitials } from "@/features/profile";
 import { Button } from "@/components/ui/button";
 
-const NavItem = ({ to, icon: Icon, label, active }) => (
+const NavItem = ({ to, icon, label, active }) => (
   <Link
     to={to}
     className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors
@@ -16,7 +17,7 @@ const NavItem = ({ to, icon: Icon, label, active }) => (
         : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"
       }`}
   >
-    <Icon className="h-4 w-4 shrink-0" />
+    {createElement(icon, { className: "h-4 w-4 shrink-0" })}
     {label}
   </Link>
 );
@@ -72,6 +73,12 @@ const AdminLayout = () => {
             icon={LayoutDashboard}
             label="Tổng quan"
             active={location.pathname === "/admin"}
+          />
+          <NavItem
+            to="/admin/users"
+            icon={UserCog}
+            label="Người dùng"
+            active={location.pathname === "/admin/users"}
           />
           <NavItem
             to="/admin/tutors"

@@ -24,10 +24,14 @@ const API_ENDPOINTS = {
     SEARCH: "/tutors/search",
   },
   ADMIN: {
-    DASHBOARD_STATS: "/tutors/admin/stats",
-    TUTORS_PENDING: "/tutors/admin/pending",
-    TUTOR_APPROVE: (id) => `/tutors/admin/${id}/approve`,
-    TUTOR_REJECT: (id) => `/tutors/admin/${id}/reject`,
+    DASHBOARD_STATS: "/admin/tutors/stats",
+    TUTORS_PENDING: "/admin/tutors/pending",
+    TUTOR_APPROVE: (id) => `/admin/tutors/${id}/approve`,
+    TUTOR_REJECT: (id) => `/admin/tutors/${id}/reject`,
+    USERS: "/admin/users",
+    USER_UPDATE: (id) => `/admin/users/${id}`,
+    USER_STATUS: (id) => `/admin/users/${id}/status`,
+    USER_DELETE: (id) => `/admin/users/${id}`,
   },
   LOCATIONS: {
     PROVINCES: "/locations/provinces",

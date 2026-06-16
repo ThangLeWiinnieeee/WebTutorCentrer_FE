@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { GraduationCap, LogOut } from "lucide-react";
 import { useDispatch } from "react-redux";
 
@@ -8,9 +8,18 @@ import { getInitials } from "@/features/profile";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
 
+const NAV_LINKS = [
+  { label: "Trang chủ", to: "/", paths: ["/"] },
+  { label: "Lớp cần gia sư", to: "/lop-moi", paths: ["/lop-moi"] },
+  { label: "Tìm gia sư", to: "/tim-gia-su", paths: ["/tim-gia-su"] },
+  { label: "Danh sách gia sư", to: "/tutors", paths: ["/tutors"] },
+  { label: "Trở thành gia sư", to: "/register-tutor", paths: ["/register-tutor"] },
+];
+
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated } = useAuth();
 
   const handleLogout = async () => {
@@ -20,48 +29,48 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto grid h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-6 px-4 sm:px-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1e3a5f]">
-            <GraduationCap className="h-5 w-5 text-white" />
+        <Link to="/" className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1e3a5f]">
+            <GraduationCap className="h-7 w-7 text-white" />
           </div>
-          <span className="text-lg font-bold text-[#1e3a5f]">WebTutorCenter</span>
+          <span className="hidden text-xl font-bold text-[#1e3a5f] sm:inline">
+            WebTutorCenter
+          </span>
         </Link>
 
-        {/* Right side */}
-        <div className="flex items-center gap-3">
-          <Link
-            to="/lop-moi"
-            className="hidden md:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#1e3a5f] border border-[#1e3a5f]/20 hover:bg-[#1e3a5f]/5 transition-colors"
-          >
-            Lớp mới
-          </Link>
+        <nav className="hidden items-center justify-center gap-9 lg:flex">
+          {NAV_LINKS.map((item) => {
+            const isActive = item.hash
+              ? location.hash === item.hash
+              : item.paths?.some((path) =>
+                  path === "/" ? location.pathname === path : location.pathname.startsWith(path)
+                );
 
+            return (
+              <Link
+                key={item.label}
+                to={item.to}
+                className={`relative py-2 text-sm font-semibold transition-colors ${
+                  isActive ? "text-[#1e3a5f]" : "text-slate-700 hover:text-[#1e3a5f]"
+                }`}
+              >
+                {item.label}
+                <span
+                  className={`absolute left-0 -bottom-0.5 h-0.5 bg-orange-500 transition-all ${
+                    isActive ? "w-full" : "w-0"
+                  }`}
+                />
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Right side */}
+        <div className="flex items-center justify-end gap-3">
           {isAuthenticated && user ? (
             <>
-              <Link
-                to="/tim-gia-su"
-                className="hidden sm:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#1e3a5f] border border-[#1e3a5f]/20 hover:bg-[#1e3a5f]/5 transition-colors"
-              >
-                Tìm gia sư
-              </Link>
-
-              <Link
-                to="/tutors"
-                className="hidden sm:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#1e3a5f] border border-[#1e3a5f]/20 hover:bg-[#1e3a5f]/5 transition-colors"
-              >
-                Danh sách gia sư
-              </Link>
-
-              {/* Become tutor link */}
-              <Link
-                to="/register-tutor"
-                className="hidden sm:flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#1e3a5f] border border-[#1e3a5f]/20 hover:bg-[#1e3a5f]/5 transition-colors"
-              >
-                Trở thành gia sư
-              </Link>
-
               {/* Notification bell */}
               <NotificationBell />
 
@@ -96,13 +105,20 @@ const Header = () => {
               </Button>
             </>
           ) : (
-            <Button
-              asChild
-              size="sm"
-              className="bg-[#1e3a5f] text-white hover:bg-[#16304f]"
-            >
-              <Link to="/login">Đăng nhập</Link>
-            </Button>
+            <>
+              <Link
+                to="/login"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#1e3a5f] px-5 text-sm font-semibold text-[#1e3a5f] transition-colors hover:bg-[#1e3a5f]/5"
+              >
+                Đăng nhập
+              </Link>
+              <Link
+                to="/register"
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-orange-500 px-5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+              >
+                Đăng ký
+              </Link>
+            </>
           )}
         </div>
       </div>

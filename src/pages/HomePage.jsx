@@ -22,12 +22,12 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Section 1: Hero Search */}
-      <section className="bg-gradient-to-br from-green-50 to-blue-50 py-12 md:py-16">
+      <section id="home" className="bg-gradient-to-br from-green-50 to-blue-50 py-12 md:py-16">
         <HeroSearchBar />
       </section>
 
       {/* Section 2 & 3: Top Tutors + Sidebar (2 columns on desktop, stacked on mobile) */}
-      <section className="max-w-7xl mx-auto px-4 py-12 md:py-16">
+      <section id="tutors" className="max-w-7xl mx-auto px-4 py-12 md:py-16">
         <div className="grid md:grid-cols-3 gap-8">
           {/* Top Tutors - Left side (2 columns) */}
           <div className="md:col-span-2">
@@ -70,7 +70,7 @@ export default function HomePage() {
       </section>
 
       {/* Sections 4-7: Intro Content */}
-      <section className="bg-gray-50 py-12 md:py-16">
+      <section id="about" className="bg-gray-50 py-12 md:py-16">
         <IntroSections />
       </section>
 

@@ -12,7 +12,7 @@ import {
   NewClassesPage,
   NewClassDetailPage,
 } from "@/features/classes";
-import { AdminLayout, TutorApprovalPage, AdminDashboardPage } from "@/admin";
+import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage } from "@/admin";
 
 import {
   LoginPage,
@@ -44,6 +44,20 @@ const router = createBrowserRouter([
     ],
   },
 
+  // Public routes
+  {
+    element: <MainLayout />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/register-tutor", element: <RegisterTutorPage /> },
+      { path: "/tutors", element: <TutorListingPage /> },
+      { path: "/tim-gia-su", element: <FindTutorRequestPage /> },
+      { path: "/tim-gia-su/:id", element: <TutorDetailPage /> },
+      { path: "/lop-moi", element: <NewClassesPage /> },
+      { path: "/lop-moi/:id", element: <NewClassDetailPage /> },
+    ],
+  },
+
   // Protected routes (cần đăng nhập, bỏ qua kiểm tra profile hoàn chỉnh)
   {
     element: <ProtectedRoute skipProfileCheck />,
@@ -59,14 +73,7 @@ const router = createBrowserRouter([
       {
         element: <MainLayout />,
         children: [
-          { path: "/", element: <HomePage /> },
           { path: "/profile", element: <ProfilePage /> },
-          { path: "/register-tutor", element: <RegisterTutorPage /> },
-          { path: "/tutors", element: <TutorListingPage /> },
-          { path: "/tim-gia-su", element: <FindTutorRequestPage /> },
-          { path: "/tim-gia-su/:id", element: <TutorDetailPage /> },
-          { path: "/lop-moi", element: <NewClassesPage /> },
-          { path: "/lop-moi/:id", element: <NewClassDetailPage /> },
         ],
       },
     ],
@@ -77,6 +84,7 @@ const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { path: "/admin", element: <AdminDashboardPage /> },
+      { path: "/admin/users", element: <AdminUsersPage /> },
       { path: "/admin/tutors", element: <TutorApprovalPage /> },
     ],
   },

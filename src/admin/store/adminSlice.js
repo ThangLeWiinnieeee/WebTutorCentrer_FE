@@ -4,6 +4,10 @@ import {
   getPendingTutorsThunk,
   approveTutorThunk,
   rejectTutorThunk,
+  getAdminUsersThunk,
+  updateAdminUserThunk,
+  updateAdminUserStatusThunk,
+  softDeleteAdminUserThunk,
 } from "./adminThunks";
 
 const adminSlice = createSlice({
@@ -19,6 +23,16 @@ const adminSlice = createSlice({
     loading: false,
     actionLoading: null,
     error: null,
+    users: [],
+    usersPagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+    },
+    usersLoading: false,
+    usersError: null,
+    userActionLoading: null,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -74,6 +88,64 @@ const adminSlice = createSlice({
       })
       .addCase(rejectTutorThunk.rejected, (state) => {
         state.actionLoading = null;
+      });
+
+    builder
+      .addCase(getAdminUsersThunk.pending, (state) => {
+        state.usersLoading = true;
+        state.usersError = null;
+      })
+      .addCase(getAdminUsersThunk.fulfilled, (state, action) => {
+        state.usersLoading = false;
+        state.users = action.payload.users || [];
+        state.usersPagination = action.payload.pagination || state.usersPagination;
+      })
+      .addCase(getAdminUsersThunk.rejected, (state, action) => {
+        state.usersLoading = false;
+        state.usersError = action.payload;
+      });
+
+    builder
+      .addCase(updateAdminUserThunk.pending, (state, action) => {
+        state.userActionLoading = action.meta.arg.id;
+      })
+      .addCase(updateAdminUserThunk.fulfilled, (state, action) => {
+        state.userActionLoading = null;
+        const updatedUser = action.payload;
+        state.users = state.users.map((user) =>
+          user.id === updatedUser.id ? updatedUser : user
+        );
+      })
+      .addCase(updateAdminUserThunk.rejected, (state) => {
+        state.userActionLoading = null;
+      });
+
+    builder
+      .addCase(updateAdminUserStatusThunk.pending, (state, action) => {
+        state.userActionLoading = action.meta.arg.id;
+      })
+      .addCase(updateAdminUserStatusThunk.fulfilled, (state, action) => {
+        state.userActionLoading = null;
+        const updatedUser = action.payload;
+        state.users = state.users.map((user) =>
+          user.id === updatedUser.id ? updatedUser : user
+        );
+      })
+      .addCase(updateAdminUserStatusThunk.rejected, (state) => {
+        state.userActionLoading = null;
+      });
+
+    builder
+      .addCase(softDeleteAdminUserThunk.pending, (state, action) => {
+        state.userActionLoading = action.meta.arg;
+      })
+      .addCase(softDeleteAdminUserThunk.fulfilled, (state, action) => {
+        state.userActionLoading = null;
+        const deletedUser = action.payload;
+        state.users = state.users.filter((user) => user.id !== deletedUser.id);
+      })
+      .addCase(softDeleteAdminUserThunk.rejected, (state) => {
+        state.userActionLoading = null;
       });
   },
 });

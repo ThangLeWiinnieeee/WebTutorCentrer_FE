@@ -925,7 +925,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
     const result = await dispatch(createClassThunk(form.getValues()));
     if (!result.error) {
       clearClassRequestFormDraft();
-      toast.success("Đăng lớp mới thành công");
+      toast.success("Đăng lớp cần gia sư thành công");
     }
   };
 
@@ -949,7 +949,7 @@ const FindTutorRequestFormContent = ({ pricingConfig }) => {
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button className="h-11 rounded-xl bg-emerald-600 px-6 text-white hover:bg-emerald-700" asChild>
-            <Link to="/lop-moi">Xem danh sách lớp mới</Link>
+            <Link to="/lop-moi">Xem danh sách lớp cần gia sư</Link>
           </Button>
           <Button
             type="button"

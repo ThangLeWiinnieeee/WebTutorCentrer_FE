@@ -16,7 +16,7 @@ import { loginSchema } from '@/features/auth/schemas/authSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GoogleLogin } from '@react-oauth/google';
 
-const LoginForm = ({ onSubmit, onGoogleSuccess }) => {
+const LoginForm = ({ onSubmit, onGoogleSuccess, onGoogleError }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -130,7 +130,7 @@ const LoginForm = ({ onSubmit, onGoogleSuccess }) => {
         <div className="flex justify-center">
           <GoogleLogin
             onSuccess={onGoogleSuccess}
-            onError={() => {}}
+            onError={onGoogleError}
             width="368"
             text="signin_with"
             locale="vi"
