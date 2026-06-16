@@ -48,3 +48,51 @@ export const rejectTutorThunk = createAsyncThunk(
     }
   }
 );
+
+export const getAdminUsersThunk = createAsyncThunk(
+  "admin/getUsers",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getUsers(params);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách người dùng");
+    }
+  }
+);
+
+export const updateAdminUserThunk = createAsyncThunk(
+  "admin/updateUser",
+  async ({ id, payload }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.updateUser(id, payload);
+      return res.data.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Cập nhật người dùng thất bại");
+    }
+  }
+);
+
+export const updateAdminUserStatusThunk = createAsyncThunk(
+  "admin/updateUserStatus",
+  async ({ id, isActive }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.updateUserStatus(id, isActive);
+      return res.data.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Cập nhật trạng thái người dùng thất bại");
+    }
+  }
+);
+
+export const softDeleteAdminUserThunk = createAsyncThunk(
+  "admin/deleteUser",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await adminService.deleteUser(id);
+      return res.data.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Xóa người dùng thất bại");
+    }
+  }
+);

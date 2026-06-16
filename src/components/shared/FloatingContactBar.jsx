@@ -6,6 +6,7 @@ export default function FloatingContactBar() {
 
   return (
     <a
+      id="contact"
       href={phoneLink}
       className="fixed bottom-8 left-8 z-50 flex items-center gap-3 bg-gradient-to-r from-orange-400 to-orange-500 px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
     >

@@ -27,9 +27,10 @@ import {
   useDispatch,
   useSelector,
 } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
+import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
 import SearchableSelect from '@/features/classes/components/SearchableSelect';
 import classService from '@/features/classes/services/classService';
 import { fetchClassesThunk } from '@/features/classes/store/classThunks';
@@ -38,10 +39,13 @@ import {
   formatClassTutorPrefsSummary,
   formatStudentGender,
 } from '@/features/classes/utils/classFormatters';
+import useAuth from '@/features/auth/hooks/useAuth';
 import locationService from '@/features/tutors/services/locationService';
 
 const NewClassesPage = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const { isAuthenticated, user } = useAuth();
   const { list, pagination, loadingList } = useSelector((state) => state.classes);
   const [filters, setFilters] = useState({ subject: "", provinceCode: "", districtCode: "" });
   const [provinces, setProvinces] = useState([]);
@@ -49,6 +53,7 @@ const NewClassesPage = () => {
   const [subjects, setSubjects] = useState([]);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [receiveDialog, setReceiveDialog] = useState({ open: false, type: "login", classItem: null });
   const pageSize = 6;
   const ALL_SUBJECTS_VALUE = "__all_subjects__";
   const ALL_PROVINCES_VALUE = "__all_provinces__";
@@ -133,6 +138,21 @@ const NewClassesPage = () => {
 
   const totalPages = pagination?.totalPages || 1;
   const totalItems = pagination?.totalItems || 0;
+  const returnTo = `${location.pathname}${location.search}`;
+
+  const handleReceiveClass = (classItem) => {
+    if (!isAuthenticated) {
+      setReceiveDialog({ open: true, type: "login", classItem });
+      return;
+    }
+
+    if (user?.role !== "tutor") {
+      setReceiveDialog({ open: true, type: "tutorRequired", classItem });
+      return;
+    }
+
+    setReceiveDialog({ open: true, type: "ready", classItem });
+  };
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -291,7 +311,7 @@ const NewClassesPage = () => {
         <div className="col-span-9 space-y-4">
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
             <div>
-              <h1 className="text-lg font-semibold text-slate-900">Lớp mới dành cho gia sư</h1>
+              <h1 className="text-lg font-semibold text-slate-900">Lớp cần gia sư</h1>
               <p className="text-sm text-slate-500">
                 Danh sách cập nhật theo môn học, khu vực và nhu cầu thực tế.
               </p>
@@ -367,7 +387,11 @@ const NewClassesPage = () => {
                   <p className="mt-1 text-xs text-emerald-700/80">
                     Phí nhận lớp 5% ({formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}đ)
                   </p>
-                  <Button className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700">
+                  <Button
+                    type="button"
+                    className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
+                    onClick={() => handleReceiveClass(item)}
+                  >
                     Nhận lớp ngay
                     <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Button>
@@ -556,6 +580,13 @@ const NewClassesPage = () => {
           </div>
         </aside>
       </div>
+      <ClassReceiveDialog
+        open={receiveDialog.open}
+        type={receiveDialog.type}
+        classItem={receiveDialog.classItem}
+        returnTo={returnTo}
+        onClose={() => setReceiveDialog((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

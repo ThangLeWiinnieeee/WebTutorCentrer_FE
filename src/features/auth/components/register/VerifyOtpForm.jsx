@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, GraduationCap, Mail } from "lucide-react";
 
@@ -8,20 +8,30 @@ import { Button } from "@/components/ui/button";
 
 const OTP_LENGTH = 6;
 
-const VerifyOtpForm = ({ email, onSubmit, onResend, resendCooldown, serverError }) => {
+const VerifyOtpForm = ({
+  email,
+  onSubmit,
+  onResend,
+  resendCooldown,
+  serverError,
+  title = "Xác thực email",
+  description,
+  submitLabel = "Xác nhận",
+  submittingLabel = "Đang xác thực...",
+}) => {
   const inputRefs = useRef([]);
 
   const {
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { isSubmitting },
   } = useForm({
     resolver: zodResolver(verifyOtpSchema),
     defaultValues: { otp: "" },
   });
 
-  const otpValue = watch("otp") || "";
+  const otpValue = useWatch({ control, name: "otp" }) || "";
 
   const handleOtpChange = (index, char) => {
     const digits = char.replace(/\D/g, "").slice(0, 1);
@@ -74,10 +84,14 @@ const VerifyOtpForm = ({ email, onSubmit, onResend, resendCooldown, serverError 
             <Mail className="h-7 w-7 text-[#1e3a5f]" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-slate-800">Xác thực email</h2>
+            <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Chúng tôi đã gửi mã OTP gồm 6 chữ số đến{" "}
-              <span className="font-semibold text-slate-700">{email}</span>
+              {description || (
+                <>
+                  Chúng tôi đã gửi mã OTP gồm 6 chữ số đến{" "}
+                  <span className="font-semibold text-slate-700">{email}</span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -120,10 +134,10 @@ const VerifyOtpForm = ({ email, onSubmit, onResend, resendCooldown, serverError 
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Đang xác thực...
+                {submittingLabel}
               </>
             ) : (
-              "Xác nhận"
+              submitLabel
             )}
           </Button>
         </form>

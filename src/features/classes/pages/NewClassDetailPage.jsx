@@ -22,10 +22,12 @@ import {
 } from 'react-redux';
 import {
   Link,
+  useLocation,
   useParams,
 } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
+import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog';
 import classService from '@/features/classes/services/classService';
 import { fetchClassDetailThunk } from '@/features/classes/store/classThunks';
 import {
@@ -36,15 +38,20 @@ import {
   formatPrice,
   formatStudentGender,
 } from '@/features/classes/utils/classFormatters';
+import useAuth from '@/features/auth/hooks/useAuth';
 
 const NewClassDetailPage = () => {
   const { id } = useParams();
+  const location = useLocation();
   const dispatch = useDispatch();
+  const { isAuthenticated, user } = useAuth();
   const { detail, loadingDetail } = useSelector((state) => state.classes);
   const [relatedClasses, setRelatedClasses] = useState([]);
   const [latestClasses, setLatestClasses] = useState([]);
   const [sidebarSuggestedClasses, setSidebarSuggestedClasses] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [receiveDialog, setReceiveDialog] = useState({ open: false, type: "login", classItem: null });
+  const returnTo = `${location.pathname}${location.search}`;
 
   useEffect(() => {
     if (id) dispatch(fetchClassDetailThunk(id));
@@ -139,6 +146,20 @@ const NewClassDetailPage = () => {
     );
   }
 
+  const handleReceiveClass = () => {
+    if (!isAuthenticated) {
+      setReceiveDialog({ open: true, type: "login", classItem: detail });
+      return;
+    }
+
+    if (user?.role !== "tutor") {
+      setReceiveDialog({ open: true, type: "tutorRequired", classItem: detail });
+      return;
+    }
+
+    setReceiveDialog({ open: true, type: "ready", classItem: detail });
+  };
+
   return (
     <div className="mx-auto max-w-[1360px] px-6 py-8">
       <div className="grid grid-cols-12 gap-6">
@@ -167,7 +188,11 @@ const NewClassDetailPage = () => {
                 <p className="mt-1 text-xs text-emerald-700/80">
                   Ước tính/tháng: {formatPrice(detail.feePerMonth)}
                 </p>
-                <Button className="mt-3 h-11 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700">
+                <Button
+                  type="button"
+                  className="mt-3 h-11 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
+                  onClick={handleReceiveClass}
+                >
                   Nhận lớp ngay
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
@@ -288,7 +313,7 @@ const NewClassDetailPage = () => {
 
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900">Lớp mới</h3>
+                <h3 className="text-lg font-semibold text-slate-900">Lớp cần gia sư</h3>
                 <Link to="/lop-moi" className="text-xs font-medium text-slate-500 hover:text-slate-700">
                   Xem các lớp khác
                 </Link>
@@ -305,7 +330,7 @@ const NewClassDetailPage = () => {
                   </li>
                 ))}
                 {!loadingSuggestions && latestClasses.length === 0 && (
-                  <li className="text-slate-500">Chưa có lớp mới phù hợp.</li>
+                  <li className="text-slate-500">Chưa có lớp cần gia sư phù hợp.</li>
                 )}
               </ul>
             </article>
@@ -383,6 +408,13 @@ const NewClassDetailPage = () => {
           </div>
         </aside>
       </div>
+      <ClassReceiveDialog
+        open={receiveDialog.open}
+        type={receiveDialog.type}
+        classItem={receiveDialog.classItem}
+        returnTo={returnTo}
+        onClose={() => setReceiveDialog((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };
