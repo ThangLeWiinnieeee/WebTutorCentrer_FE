@@ -52,6 +52,42 @@ export const fetchClassDetailThunk = createAsyncThunk(
   }
 );
 
+export const fetchMyClassesThunk = createAsyncThunk(
+  "classes/fetchMine",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await classService.mine(params);
+      return res.data.data.applications || [];
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách lớp đã nhận");
+    }
+  }
+);
+
+export const fetchClassFeedThunk = createAsyncThunk(
+  "classes/fetchFeed",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await classService.feed(params);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không tải được bài đăng theo môn");
+    }
+  }
+);
+
+export const fetchMyPostsThunk = createAsyncThunk(
+  "classes/fetchMyPosts",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await classService.myPosts(params);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách bài đăng");
+    }
+  }
+);
+
 export const applyForClassThunk = createAsyncThunk(
   "classes/apply",
   async (classId, { rejectWithValue }) => {

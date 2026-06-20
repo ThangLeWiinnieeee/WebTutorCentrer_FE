@@ -1,0 +1,49 @@
+import { Link } from "react-router-dom";
+import { ChevronRight, ClipboardList, FileText } from "lucide-react";
+
+const ProfileMenu = ({ isTutor }) => {
+  const items = [
+    ...(isTutor
+      ? [
+          {
+            to: "/my-classes",
+            label: "Danh sách nhận lớp",
+            desc: "Các lớp bạn đã gửi yêu cầu nhận",
+            icon: ClipboardList,
+          },
+        ]
+      : []),
+    {
+      to: "/my-posts",
+      label: "Danh sách bài đăng",
+      desc: "Bài đăng tìm gia sư bạn đã tạo",
+      icon: FileText,
+    },
+  ];
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            className="flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-slate-50"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+              <Icon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-slate-800">{item.label}</p>
+              <p className="truncate text-xs text-slate-500">{item.desc}</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+          </Link>
+        );
+      })}
+    </div>
+  );
+};
+
+export default ProfileMenu;

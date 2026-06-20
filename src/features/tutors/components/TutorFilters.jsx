@@ -1,300 +1,157 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Filter, X } from "lucide-react";
-import lookupService from "@/features/tutors/services/lookupService";
+import { useMemo } from "react";
+import { ChevronDown, Filter, X } from "lucide-react";
 
-export default function TutorFilters({ filters, onFilterChange }) {
-  const [localFilters, setLocalFilters] = useState(filters || {});
-  const [expandedSections, setExpandedSections] = useState({
-    subject: true,
-    status: false,
-    gender: false,
-    yearOfBirth: false,
-    location: false,
-  });
+const SelectField = ({ label, value, onChange, disabled, placeholder, children }) => (
+  <div>
+    <label className="mb-1.5 block text-xs font-semibold text-slate-600">{label}</label>
+    <div className="relative">
+      <select
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 pr-9 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+      >
+        <option value="">{placeholder}</option>
+        {children}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+    </div>
+  </div>
+);
 
-  // Lookup data from API
-  const [subjects, setSubjects] = useState([]);
-  const [occupationStatuses, setOccupationStatuses] = useState([]);
-  const [genders, setGenders] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function TutorFilters({
+  filters = {},
+  onFilterChange,
+  lookups = {},
+  districts = [],
+  loading = false,
+}) {
+  const { subjects = [], occupations = [], genders = [], provinces = [] } = lookups;
 
-  // Load lookup data on mount
-  useEffect(() => {
-    const loadLookupData = async () => {
-      try {
-        setLoading(true);
-        const [subjects, occupationStatuses, genders, provinces] = await Promise.all([
-          lookupService.getSubjects(),
-          lookupService.getOccupationStatuses(),
-          lookupService.getGenders(),
-          lookupService.getProvinces(),
-        ]);
-
-        setSubjects(subjects);
-        setOccupationStatuses(occupationStatuses);
-        setGenders(genders);
-        setProvinces(provinces);
-      } catch (error) {
-        console.error("Failed to load lookup data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadLookupData();
-  }, []);
-
-  // Load districts when province changes
-  useEffect(() => {
-    if (localFilters.province) {
-      const loadDistricts = async () => {
-        try {
-          const data = await lookupService.getDistrictsByProvince(localFilters.province);
-          setDistricts(data);
-        } catch (error) {
-          console.error("Failed to load districts:", error);
-          setDistricts([]);
-        }
-      };
-      loadDistricts();
-    } else {
-      setDistricts([]);
-    }
-  }, [localFilters.province]);
-
-  const toggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+  const update = (key, value) => {
+    const next = { ...filters };
+    if (value === undefined || value === "" || value === null) delete next[key];
+    else next[key] = value;
+    if (key === "province") delete next.district; // đổi tỉnh thì bỏ quận/huyện cũ
+    onFilterChange(next);
   };
 
-  const handleSubjectToggle = (subject) => {
-    // BE chỉ lọc theo 1 môn (req.query.subject), nên dùng single-select
-    updateFilter("subject", subject === localFilters.subject ? undefined : subject);
-  };
-
-  const handleOccupationChange = (status) => {
-    updateFilter(
-      "occupationStatus",
-      status === localFilters.occupationStatus ? undefined : status
-    );
-  };
-
-  const handleGenderChange = (gender) => {
-    updateFilter("gender", gender === localFilters.gender ? undefined : gender);
-  };
-
-  const handleProvinceChange = (province) => {
-    updateFilter("province", province === localFilters.province ? undefined : province);
-    updateFilter("district", undefined); // Reset district
-  };
-
-  const handleDistrictChange = (district) => {
-    updateFilter("district", district === localFilters.district ? undefined : district);
-  };
-
-  const handleYearOfBirthChange = (year) => {
-    updateFilter("yearOfBirth", year || undefined);
-  };
-
-  const updateFilter = (key, value) => {
-    const updated = { ...localFilters, [key]: value };
-    setLocalFilters(updated);
-    onFilterChange(updated);
-  };
-
-  const handleReset = () => {
-    setLocalFilters({});
-    onFilterChange({});
-  };
+  const activeCount = useMemo(() => Object.values(filters).filter(Boolean).length, [filters]);
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <p className="text-center text-gray-500">Đang tải bộ lọc...</p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="h-16 animate-pulse rounded-lg bg-slate-200" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="font-bold text-gray-900 flex items-center gap-2">
-          <Filter className="w-5 h-5" />
-          Bộ Lọc
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="flex items-center gap-2 font-bold text-slate-900">
+          <Filter className="h-5 w-5 text-emerald-600" />
+          Bộ lọc
+          {activeCount > 0 && (
+            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-xs font-semibold text-white">
+              {activeCount}
+            </span>
+          )}
         </h3>
-        {Object.keys(localFilters).some((k) => localFilters[k]) && (
+        {activeCount > 0 && (
           <button
-            onClick={handleReset}
-            className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+            type="button"
+            onClick={() => onFilterChange({})}
+            className="inline-flex items-center gap-1 text-xs font-medium text-rose-500 hover:text-rose-600"
           >
-            <X className="w-3 h-3" /> Xóa
+            <X className="h-3.5 w-3.5" /> Xóa tất cả
           </button>
         )}
       </div>
 
-      {/* Filters */}
-      <div className="space-y-6">
-        {/* Subject Filter */}
-        <div className="border-b border-gray-200 pb-4">
-          <button
-            onClick={() => toggleSection("subject")}
-            className="w-full text-left font-semibold text-gray-900 flex items-center justify-between"
-          >
-            Môn Học
-            <span className="text-gray-400">{expandedSections.subject ? "−" : "+"}</span>
-          </button>
-          {expandedSections.subject && (
-            <div className="mt-3 space-y-2">
-              {subjects.map((subject) => (
-                <label key={subject.value} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={localFilters.subject === subject.value}
-                    onChange={() => handleSubjectToggle(subject.value)}
-                    className="rounded"
-                  />
-                  <span className="text-sm text-gray-700">{subject.label}</span>
-                </label>
-              ))}
-            </div>
-          )}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <SelectField
+          label="Môn học"
+          value={filters.subject || ""}
+          onChange={(e) => update("subject", e.target.value || undefined)}
+          placeholder="Tất cả môn học"
+        >
+          {subjects.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </SelectField>
+
+        <SelectField
+          label="Chuyên môn"
+          value={filters.occupationStatus || ""}
+          onChange={(e) => update("occupationStatus", e.target.value || undefined)}
+          placeholder="Tất cả"
+        >
+          {occupations.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </SelectField>
+
+        <SelectField
+          label="Giới tính"
+          value={filters.gender || ""}
+          onChange={(e) => update("gender", e.target.value || undefined)}
+          placeholder="Tất cả"
+        >
+          {genders.map((g) => (
+            <option key={g.value} value={g.value}>
+              {g.label}
+            </option>
+          ))}
+        </SelectField>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-slate-600">Năm sinh</label>
+          <input
+            type="number"
+            min={1960}
+            max={new Date().getFullYear()}
+            placeholder="VD: 1998"
+            value={filters.yearOfBirth || ""}
+            onChange={(e) => update("yearOfBirth", e.target.value || undefined)}
+            className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+          />
         </div>
 
-        {/* Occupation Status Filter */}
-        <div className="border-b border-gray-200 pb-4">
-          <button
-            onClick={() => toggleSection("status")}
-            className="w-full text-left font-semibold text-gray-900 flex items-center justify-between"
-          >
-            Chuyên Môn
-            <span className="text-gray-400">{expandedSections.status ? "−" : "+"}</span>
-          </button>
-          {expandedSections.status && (
-            <div className="mt-3 space-y-2">
-              {occupationStatuses.map((status) => (
-                <label key={status.value} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={localFilters.occupationStatus === status.value}
-                    onChange={() => handleOccupationChange(status.value)}
-                    className="rounded"
-                  />
-                  <span className="text-sm text-gray-700">{status.label}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
+        <SelectField
+          label="Tỉnh/Thành"
+          value={filters.province || ""}
+          onChange={(e) => update("province", e.target.value || undefined)}
+          placeholder="Tất cả tỉnh/thành"
+        >
+          {provinces.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </SelectField>
 
-        {/* Gender Filter */}
-        <div className="border-b border-gray-200 pb-4">
-          <button
-            onClick={() => toggleSection("gender")}
-            className="w-full text-left font-semibold text-gray-900 flex items-center justify-between"
-          >
-            Giới Tính
-            <span className="text-gray-400">{expandedSections.gender ? "−" : "+"}</span>
-          </button>
-          {expandedSections.gender && (
-            <div className="mt-3 space-y-2">
-              {genders.map((gender) => (
-                <label key={gender.value} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={localFilters.gender === gender.value}
-                    onChange={() => handleGenderChange(gender.value)}
-                    className="rounded"
-                  />
-                  <span className="text-sm text-gray-700">{gender.label}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Year of Birth Filter */}
-        <div className="border-b border-gray-200 pb-4">
-          <button
-            onClick={() => toggleSection("yearOfBirth")}
-            className="w-full text-left font-semibold text-gray-900 flex items-center justify-between"
-          >
-            Năm Sinh
-            <span className="text-gray-400">{expandedSections.yearOfBirth ? "−" : "+"}</span>
-          </button>
-          {expandedSections.yearOfBirth && (
-            <div className="mt-3">
-              <input
-                type="number"
-                min={1960}
-                max={new Date().getFullYear()}
-                placeholder="Nhập năm sinh (VD: 1990)"
-                value={localFilters.yearOfBirth || ""}
-                onChange={(e) => handleYearOfBirthChange(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Location Filter */}
-        <div className="border-b border-gray-200 pb-4">
-          <button
-            onClick={() => toggleSection("location")}
-            className="w-full text-left font-semibold text-gray-900 flex items-center justify-between"
-          >
-            Địa Điểm
-            <span className="text-gray-400">{expandedSections.location ? "−" : "+"}</span>
-          </button>
-          {expandedSections.location && (
-            <div className="mt-3 space-y-3">
-              {/* Province */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-2">
-                  Tỉnh/Thành
-                </label>
-                <select
-                  value={localFilters.province || ""}
-                  onChange={(e) => handleProvinceChange(e.target.value || undefined)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">-- Chọn --</option>
-                  {provinces.map((prov) => (
-                    <option key={prov.value} value={prov.value}>
-                      {prov.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* District */}
-              {localFilters.province && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-2">
-                    Quận/Huyện
-                  </label>
-                  <select
-                    value={localFilters.district || ""}
-                    onChange={(e) => handleDistrictChange(e.target.value || undefined)}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">-- Chọn --</option>
-                    {districts.map((dist) => (
-                      <option key={dist.value} value={dist.value}>
-                        {dist.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <SelectField
+          label="Quận/Huyện"
+          value={filters.district || ""}
+          onChange={(e) => update("district", e.target.value || undefined)}
+          disabled={!filters.province}
+          placeholder={filters.province ? "Tất cả quận/huyện" : "Chọn tỉnh trước"}
+        >
+          {districts.map((d) => (
+            <option key={d.value} value={d.value}>
+              {d.label}
+            </option>
+          ))}
+        </SelectField>
       </div>
     </div>
   );

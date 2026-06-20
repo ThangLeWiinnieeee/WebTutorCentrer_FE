@@ -399,14 +399,20 @@ const NewClassesPage = () => {
                   <p className="mt-1 text-xs text-emerald-700/80">
                     Phí nhận lớp 5% ({formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}đ)
                   </p>
-                  <Button
-                    type="button"
-                    className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
-                    onClick={() => handleReceiveClass(item)}
-                  >
-                    Nhận lớp ngay
-                    <ArrowRight className="ml-1.5 h-4 w-4" />
-                  </Button>
+                  {user?.id && item.createdBy === user.id ? (
+                    <div className="mt-3 flex h-10 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
+                      Bài đăng của bạn
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
+                      onClick={() => handleReceiveClass(item)}
+                    >
+                      Nhận lớp ngay
+                      <ArrowRight className="ml-1.5 h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
 

@@ -1,76 +1,63 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function TutorPagination({ currentPage, totalPages, onPageChange }) {
-  const pages = [];
+  if (totalPages <= 1) return null;
 
-  // Calculate visible page numbers
+  const pages = [];
   const startPage = Math.max(1, currentPage - 2);
   const endPage = Math.min(totalPages, currentPage + 2);
 
-  // Add first page if not visible
   if (startPage > 1) {
     pages.push(1);
-    if (startPage > 2) {
-      pages.push("...");
-    }
+    if (startPage > 2) pages.push("...");
   }
-
-  // Add visible pages
-  for (let i = startPage; i <= endPage; i++) {
-    pages.push(i);
-  }
-
-  // Add last page if not visible
+  for (let i = startPage; i <= endPage; i++) pages.push(i);
   if (endPage < totalPages) {
-    if (endPage < totalPages - 1) {
-      pages.push("...");
-    }
+    if (endPage < totalPages - 1) pages.push("...");
     pages.push(totalPages);
   }
 
   return (
-    <div className="flex items-center justify-center gap-2">
-      {/* Previous Button */}
+    <div className="flex items-center justify-center gap-1.5">
       <button
+        type="button"
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="p-2 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label="Trang trước"
       >
-        <ChevronLeft className="w-5 h-5" />
+        <ChevronLeft className="h-5 w-5" />
       </button>
 
-      {/* Page Numbers */}
-      {pages.map((page, index) => {
-        if (page === "...") {
-          return (
-            <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
-              ...
-            </span>
-          );
-        }
-
-        return (
+      {pages.map((page, index) =>
+        page === "..." ? (
+          <span key={`ellipsis-${index}`} className="px-1.5 text-slate-400">
+            ...
+          </span>
+        ) : (
           <button
             key={page}
+            type="button"
             onClick={() => onPageChange(page)}
-            className={`w-10 h-10 rounded border transition-colors ${
+            className={`h-10 min-w-10 rounded-lg border px-2.5 text-sm font-medium transition ${
               currentPage === page
-                ? "bg-green-600 text-white border-green-600"
-                : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                ? "border-emerald-600 bg-emerald-600 text-white"
+                : "border-slate-200 text-slate-600 hover:bg-slate-50"
             }`}
           >
             {page}
           </button>
-        );
-      })}
+        )
+      )}
 
-      {/* Next Button */}
       <button
+        type="button"
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="p-2 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label="Trang sau"
       >
-        <ChevronRight className="w-5 h-5" />
+        <ChevronRight className="h-5 w-5" />
       </button>
     </div>
   );
