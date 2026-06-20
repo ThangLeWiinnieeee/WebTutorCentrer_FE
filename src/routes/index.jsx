@@ -11,7 +11,10 @@ import {
   FindTutorRequestPage,
   NewClassesPage,
   NewClassDetailPage,
+  MyClassesPage,
+  MyPostsPage,
 } from "@/features/classes";
+import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
 import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage } from "@/admin";
 
 import {
@@ -74,6 +77,21 @@ const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
           { path: "/profile", element: <ProfilePage /> },
+          { path: "/notifications", element: <NotificationsPage /> },
+          { path: "/my-posts", element: <MyPostsPage /> },
+        ],
+      },
+    ],
+  },
+
+  // Protected routes dành riêng cho gia sư
+  {
+    element: <ProtectedRoute allowedRoles={["tutor"]} />,
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          { path: "/my-classes", element: <MyClassesPage /> },
         ],
       },
     ],

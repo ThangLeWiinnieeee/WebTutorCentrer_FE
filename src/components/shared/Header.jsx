@@ -1,11 +1,11 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { GraduationCap, LogOut } from "lucide-react";
+import { ChevronDown, ClipboardList, FileText, GraduationCap, LogOut, UserRound } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import { logoutThunk } from "@/features/auth/store/authThunks";
 import { getInitials } from "@/features/profile";
-import { Button } from "@/components/ui/button";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
 
 const NAV_LINKS = [
@@ -21,10 +21,27 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
-  const navLinks = NAV_LINKS.filter((item) => !(item.hideForTutor && user?.role === "tutor"));
+  const isTutor = user?.role === "tutor";
+
+  const navLinks = NAV_LINKS.filter(
+    (item) =>
+      !(item.hideForTutor && user?.role === "tutor") &&
+      !(item.showForTutorOnly && user?.role !== "tutor")
+  );
+
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
   const handleLogout = async () => {
+    setMenuOpen(false);
     await dispatch(logoutThunk());
     navigate("/login", { replace: true });
   };
@@ -37,9 +54,7 @@ const Header = () => {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1e3a5f]">
             <GraduationCap className="h-7 w-7 text-white" />
           </div>
-          <span className="hidden text-xl font-bold text-[#1e3a5f] sm:inline">
-            WebTutorCenter
-          </span>
+          <span className="hidden text-xl font-bold text-[#1e3a5f] sm:inline">WebTutorCenter</span>
         </Link>
 
         <nav className="hidden items-center justify-center gap-9 lg:flex">
@@ -76,35 +91,87 @@ const Header = () => {
               {/* Notification bell */}
               <NotificationBell />
 
-              {/* User info */}
-              <Link to="/profile" className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100">
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.fullName}
-                    referrerPolicy="no-referrer"
-                    className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200"
+              {/* User menu */}
+              <div ref={menuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100 ${
+                    menuOpen ? "bg-slate-100" : ""
+                  }`}
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.fullName}
+                      referrerPolicy="no-referrer"
+                      className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f] text-xs font-bold text-white ring-2 ring-slate-200">
+                      {getInitials(user.fullName)}
+                    </div>
+                  )}
+                  <span className="hidden text-sm font-medium text-slate-700 sm:block">{user.fullName}</span>
+                  <ChevronDown
+                    className={`hidden h-4 w-4 text-slate-400 transition-transform sm:block ${
+                      menuOpen ? "rotate-180" : ""
+                    }`}
                   />
-                ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f] text-xs font-bold text-white ring-2 ring-slate-200">
-                    {getInitials(user.fullName)}
+                </button>
+
+                {menuOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-12 z-50 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+                  >
+                    <div className="border-b border-slate-100 px-4 py-3">
+                      <p className="truncate text-sm font-semibold text-slate-800">{user.fullName}</p>
+                      {user.email && <p className="truncate text-xs text-slate-400">{user.email}</p>}
+                    </div>
+
+                    <Link
+                      to="/profile"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      <UserRound className="h-4 w-4 text-slate-400" />
+                      Thông tin cá nhân
+                    </Link>
+
+                    {isTutor && (
+                      <Link
+                        to="/my-classes"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+                      >
+                        <ClipboardList className="h-4 w-4 text-slate-400" />
+                        Danh sách nhận lớp
+                      </Link>
+                    )}
+
+                    <Link
+                      to="/my-posts"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      <FileText className="h-4 w-4 text-slate-400" />
+                      Danh sách bài đăng
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-2.5 border-t border-slate-100 px-4 py-2.5 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Đăng xuất
+                    </button>
                   </div>
                 )}
-                <span className="hidden text-sm font-medium text-slate-700 sm:block">
-                  {user.fullName}
-                </span>
-              </Link>
-
-              {/* Logout */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="gap-1.5 text-slate-600 hover:bg-red-50 hover:text-red-600"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Đăng xuất</span>
-              </Button>
+              </div>
             </>
           ) : (
             <>

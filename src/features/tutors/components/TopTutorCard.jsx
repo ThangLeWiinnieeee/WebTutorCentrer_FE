@@ -1,71 +1,60 @@
-import { Users, MapPin } from "lucide-react";
+import { MapPin, Users } from "lucide-react";
 
-export default function TopTutorCard({ tutor }) {
-  const getInitials = (name) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+const getInitials = (name) =>
+  (name || "")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
-  const locationParts = [
-    tutor.currentArea?.districtName,
-    tutor.currentArea?.provinceName,
-  ].filter(Boolean);
+export default function TopTutorCard({ tutor, rank }) {
+  const locationParts = [tutor.currentArea?.districtName, tutor.currentArea?.provinceName].filter(Boolean);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg hover:border-green-300 transition-all cursor-pointer h-full">
-      {/* Avatar */}
-      <div className="flex flex-col items-center pt-6 pb-4">
-        <div className="w-16 h-16 rounded-full bg-linear-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+    <div className="relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md">
+      {rank != null && (
+        <span
+          className={`absolute left-3 top-3 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white ${
+            rank === 1 ? "bg-amber-500" : rank === 2 ? "bg-slate-400" : rank === 3 ? "bg-orange-500" : "bg-[#1e3a5f]"
+          }`}
+        >
+          {rank}
+        </span>
+      )}
+
+      <div className="flex flex-col items-center px-4 pb-4 pt-6">
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-emerald-400 to-[#1e3a5f] text-lg font-bold text-white ring-4 ring-slate-100">
           {tutor.avatar ? (
-            <img
-              src={tutor.avatar}
-              alt={tutor.fullName}
-              className="w-full h-full rounded-full object-cover"
-            />
+            <img src={tutor.avatar} alt={tutor.fullName} referrerPolicy="no-referrer" className="h-full w-full object-cover" />
           ) : (
             getInitials(tutor.fullName)
           )}
         </div>
-      </div>
 
-      {/* Info */}
-      <div className="px-4 pb-4 space-y-2">
-        <h3 className="font-bold text-gray-900 text-center text-sm leading-tight">
-          {tutor.fullName}
-        </h3>
+        <h3 className="mt-3 line-clamp-1 text-center text-sm font-bold text-slate-900">{tutor.fullName}</h3>
 
         {locationParts.length > 0 && (
-          <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
-            <MapPin className="w-3 h-3" />
+          <div className="mt-1 flex items-center justify-center gap-1 text-xs text-slate-500">
+            <MapPin className="h-3 w-3 shrink-0" />
             <span className="truncate">{locationParts.join(", ")}</span>
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-1.5 text-sm">
-          <Users className="w-4 h-4 text-green-600" />
-          <span className="text-gray-700">
-            {tutor.totalClassesAccepted || 0} lớp
-          </span>
+        <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+          <Users className="h-3.5 w-3.5" />
+          {tutor.totalClassesAccepted || 0} lớp
         </div>
 
-        {tutor.subjects && tutor.subjects.length > 0 && (
-          <div className="flex flex-wrap gap-1 justify-center">
-            {tutor.subjects.slice(0, 3).map((subject) => (
-              <span
-                key={subject}
-                className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded"
-              >
+        {tutor.subjects?.length > 0 && (
+          <div className="mt-2 flex flex-wrap justify-center gap-1">
+            {tutor.subjects.slice(0, 2).map((subject) => (
+              <span key={subject} className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                 {subject}
               </span>
             ))}
-            {tutor.subjects.length > 3 && (
-              <span className="text-xs text-gray-400">
-                +{tutor.subjects.length - 3}
-              </span>
+            {tutor.subjects.length > 2 && (
+              <span className="text-xs text-slate-400">+{tutor.subjects.length - 2}</span>
             )}
           </div>
         )}

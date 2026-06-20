@@ -4,6 +4,9 @@ import {
   createClassThunk,
   fetchClassesThunk,
   fetchClassDetailThunk,
+  fetchMyClassesThunk,
+  fetchClassFeedThunk,
+  fetchMyPostsThunk,
   applyForClassThunk,
 } from "./classThunks";
 
@@ -20,6 +23,30 @@ const initialState = {
     hasPrevPage: false,
   },
   detail: null,
+  myClasses: [],
+  loadingMyClasses: false,
+  feed: [],
+  feedPagination: {
+    page: 1,
+    limit: 10,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
+  feedSubjects: [],
+  feedNewCount: 0,
+  loadingFeed: false,
+  myPosts: [],
+  myPostsPagination: {
+    page: 1,
+    limit: 10,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
+  loadingMyPosts: false,
   loadingQuote: false,
   creating: false,
   loadingList: false,
@@ -99,6 +126,46 @@ const classSlice = createSlice({
       })
       .addCase(fetchClassDetailThunk.rejected, (state, action) => {
         state.loadingDetail = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMyClassesThunk.pending, (state) => {
+        state.loadingMyClasses = true;
+        state.error = null;
+      })
+      .addCase(fetchMyClassesThunk.fulfilled, (state, action) => {
+        state.loadingMyClasses = false;
+        state.myClasses = action.payload || [];
+      })
+      .addCase(fetchMyClassesThunk.rejected, (state, action) => {
+        state.loadingMyClasses = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchClassFeedThunk.pending, (state) => {
+        state.loadingFeed = true;
+        state.error = null;
+      })
+      .addCase(fetchClassFeedThunk.fulfilled, (state, action) => {
+        state.loadingFeed = false;
+        state.feed = action.payload.classes || [];
+        state.feedSubjects = action.payload.subjects || [];
+        state.feedNewCount = action.payload.newCount || 0;
+        if (action.payload.pagination) state.feedPagination = action.payload.pagination;
+      })
+      .addCase(fetchClassFeedThunk.rejected, (state, action) => {
+        state.loadingFeed = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMyPostsThunk.pending, (state) => {
+        state.loadingMyPosts = true;
+        state.error = null;
+      })
+      .addCase(fetchMyPostsThunk.fulfilled, (state, action) => {
+        state.loadingMyPosts = false;
+        state.myPosts = action.payload.classes || [];
+        if (action.payload.pagination) state.myPostsPagination = action.payload.pagination;
+      })
+      .addCase(fetchMyPostsThunk.rejected, (state, action) => {
+        state.loadingMyPosts = false;
         state.error = action.payload;
       })
       .addCase(applyForClassThunk.pending, (state) => {

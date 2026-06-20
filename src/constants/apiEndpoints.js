@@ -61,6 +61,8 @@ const API_ENDPOINTS = {
     PRICING_CONFIG: "/classes/pricing-config",
     DETAIL: (id) => `/classes/${id}`,
     MINE: "/classes/mine",
+    FEED: "/classes/feed",
+    MY_POSTS: "/classes/my-posts",
     APPLY: (id) => `/classes/${id}/apply`,
   },
 };
