@@ -21,7 +21,7 @@ const ProfileMenu = ({ isTutor }) => {
       : []),
     {
       to: "/my-posts",
-      label: "Danh sách bài đăng",
+      label: "Bài đăng của tôi",
       desc: "Bài đăng tìm gia sư bạn đã tạo",
       icon: FileText,
     },

@@ -51,6 +51,9 @@ const API_ENDPOINTS = {
     APPLICATION_CANCELLATIONS: "/admin/application-cancellations",
     CANCELLATION_APPROVE: (id) => `/admin/application-cancellations/${id}/approve`,
     CANCELLATION_REJECT: (id) => `/admin/application-cancellations/${id}/reject`,
+    REVIEW_TUTORS: "/admin/reviews/tutors",
+    REVIEW_TUTOR_REVIEWS: (tutorId) => `/admin/reviews/tutors/${tutorId}`,
+    REVIEW_DELETE: (id) => `/admin/reviews/${id}`,
   },
   LOCATIONS: {
     PROVINCES: "/locations/provinces",
@@ -94,8 +97,14 @@ const API_ENDPOINTS = {
     FEED: "/classes/feed",
     MY_POSTS: "/classes/my-posts",
     APPLY: (id) => `/classes/${id}/apply`,
+    APPLICANTS: (id) => `/classes/${id}/applicants`,
+    SELECT_APPLICANT: (id, applicationId) => `/classes/${id}/applicants/${applicationId}/select`,
     CANCEL_APPLICATION: (id) => `/classes/applications/${id}/cancel`,
     COMPLETE: (id) => `/classes/${id}/complete`,
+  },
+  REVIEWS: {
+    CREATE: "/reviews",
+    BY_TUTOR: (tutorId) => `/reviews/tutor/${tutorId}`,
   },
 };
 

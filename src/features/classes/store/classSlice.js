@@ -8,6 +8,8 @@ import {
   fetchClassFeedThunk,
   fetchMyPostsThunk,
   applyForClassThunk,
+  fetchApplicantsThunk,
+  selectApplicantThunk,
   cancelApplicationThunk,
 } from "./classThunks";
 
@@ -46,7 +48,12 @@ const initialState = {
   },
   feedSubjects: [],
   feedNewCount: 0,
+  feedPersonalization: null,
   loadingFeed: false,
+  // Người đăng xem & chọn gia sư ứng tuyển bài đăng của mình
+  applicants: [],
+  loadingApplicants: false,
+  selectingApplicant: false,
   myPosts: [],
   myPostsPagination: {
     page: 1,
@@ -75,6 +82,10 @@ const classSlice = createSlice({
       state.quote = null;
       state.latestCreated = null;
       state.error = null;
+    },
+    clearApplicants: (state) => {
+      state.applicants = [];
+      state.loadingApplicants = false;
     },
   },
   extraReducers: (builder) => {
@@ -162,10 +173,32 @@ const classSlice = createSlice({
         state.feed = action.payload.classes || [];
         state.feedSubjects = action.payload.subjects || [];
         state.feedNewCount = action.payload.newCount || 0;
+        state.feedPersonalization = action.payload.personalization || null;
         if (action.payload.pagination) state.feedPagination = action.payload.pagination;
       })
       .addCase(fetchClassFeedThunk.rejected, (state, action) => {
         state.loadingFeed = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchApplicantsThunk.pending, (state) => {
+        state.loadingApplicants = true;
+      })
+      .addCase(fetchApplicantsThunk.fulfilled, (state, action) => {
+        state.loadingApplicants = false;
+        state.applicants = action.payload.applicants || [];
+      })
+      .addCase(fetchApplicantsThunk.rejected, (state, action) => {
+        state.loadingApplicants = false;
+        state.error = action.payload;
+      })
+      .addCase(selectApplicantThunk.pending, (state) => {
+        state.selectingApplicant = true;
+      })
+      .addCase(selectApplicantThunk.fulfilled, (state) => {
+        state.selectingApplicant = false;
+      })
+      .addCase(selectApplicantThunk.rejected, (state, action) => {
+        state.selectingApplicant = false;
         state.error = action.payload;
       })
       .addCase(fetchMyPostsThunk.pending, (state) => {
@@ -208,5 +241,5 @@ const classSlice = createSlice({
   },
 });
 
-export const { clearClassFlow } = classSlice.actions;
+export const { clearClassFlow, clearApplicants } = classSlice.actions;
 export default classSlice.reducer;

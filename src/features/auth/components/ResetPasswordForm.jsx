@@ -27,38 +27,62 @@ const ResetPasswordForm = ({ email, onSubmit, serverError }) => {
     },
   });
 
+  // Ô input dạng "filled" mềm, hòa vào nền trắng — focus mới nổi viền + nền trắng.
+  const fieldClass = (hasError) =>
+    `h-12 rounded-xl border px-4 pr-12 text-[15px] text-slate-800 transition-all duration-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:border-[#1e3a5f] ${
+      hasError
+        ? "border-red-300 bg-red-50/60 focus-visible:border-red-400"
+        : "border-transparent bg-slate-100/70 hover:bg-slate-100"
+    }`;
+
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-12">
-      <div className="w-full max-w-[400px] space-y-8">
-        <div className="flex items-center gap-2 lg:hidden">
+    <div className="flex flex-1 items-center justify-center bg-white px-6 py-12 sm:px-12">
+      <div className="w-full max-w-[400px]">
+        {/* Mobile logo */}
+        <div data-aos="fade-up" className="mb-10 flex items-center gap-2 lg:hidden">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1e3a5f]">
             <GraduationCap className="h-5 w-5 text-white" />
           </div>
           <span className="text-lg font-bold text-[#1e3a5f]">WebTutorCenter</span>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 border border-blue-100">
-            <KeyRound className="h-7 w-7 text-[#1e3a5f]" />
+        {/* Icon + Heading */}
+        <div className="space-y-4">
+          <div
+            data-aos="zoom-in"
+            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-50 to-blue-100 text-[#1e3a5f] shadow-sm ring-1 ring-blue-100"
+          >
+            <KeyRound className="h-7 w-7" />
           </div>
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-slate-800">Đặt lại mật khẩu</h2>
-            <p className="text-sm text-slate-500 leading-relaxed">
+          <div data-aos="fade-up" data-aos-delay="100" className="space-y-2">
+            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Đặt lại mật khẩu</h2>
+            <p className="text-[15px] leading-relaxed text-slate-500">
               Tạo mật khẩu mới cho{" "}
               <span className="font-semibold text-slate-700">{email}</span>
             </p>
           </div>
         </div>
 
+        {/* Server error */}
         {serverError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div
+            data-aos="fade-up"
+            className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+          >
             {serverError}
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit, scrollToFirstError)} noValidate className="space-y-5">
-          <div className="space-y-1.5">
-            <Label htmlFor="newPassword" className="text-slate-700 font-medium text-sm">
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit(onSubmit, scrollToFirstError)}
+          noValidate
+          data-aos="fade-up"
+          data-aos-delay="150"
+          className="mt-8 space-y-5"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="newPassword" className="text-sm font-medium text-slate-700">
               Mật khẩu mới
             </Label>
             <div className="relative">
@@ -67,18 +91,16 @@ const ResetPasswordForm = ({ email, onSubmit, serverError }) => {
                 type={showNewPassword ? "text" : "password"}
                 placeholder="Tối thiểu 6 ký tự"
                 autoComplete="new-password"
-                className={`h-11 bg-white border-slate-200 focus-visible:ring-blue-500 pr-11 text-slate-800 placeholder:text-slate-400 ${
-                  errors.newPassword ? "border-red-400 focus-visible:ring-red-400" : ""
-                }`}
+                className={fieldClass(errors.newPassword)}
                 {...register("newPassword")}
               />
               <button
                 type="button"
                 onClick={() => setShowNewPassword((value) => !value)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
                 tabIndex={-1}
               >
-                {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showNewPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
               </button>
             </div>
             {errors.newPassword && (
@@ -86,8 +108,8 @@ const ResetPasswordForm = ({ email, onSubmit, serverError }) => {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="confirmPassword" className="text-slate-700 font-medium text-sm">
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
               Xác nhận mật khẩu
             </Label>
             <div className="relative">
@@ -96,18 +118,16 @@ const ResetPasswordForm = ({ email, onSubmit, serverError }) => {
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Nhập lại mật khẩu"
                 autoComplete="new-password"
-                className={`h-11 bg-white border-slate-200 focus-visible:ring-blue-500 pr-11 text-slate-800 placeholder:text-slate-400 ${
-                  errors.confirmPassword ? "border-red-400 focus-visible:ring-red-400" : ""
-                }`}
+                className={fieldClass(errors.confirmPassword)}
                 {...register("confirmPassword")}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((value) => !value)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
                 tabIndex={-1}
               >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showConfirmPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
               </button>
             </div>
             {errors.confirmPassword && (
@@ -118,7 +138,7 @@ const ResetPasswordForm = ({ email, onSubmit, serverError }) => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-11 bg-[#1e3a5f] hover:bg-[#16304f] text-white font-semibold text-sm rounded-lg transition-colors"
+            className="h-12 w-full rounded-xl bg-linear-to-r from-[#1e3a5f] to-[#2c5286] text-[15px] font-semibold text-white shadow-lg shadow-[#1e3a5f]/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-[#16304f] hover:to-[#244269] hover:shadow-xl hover:shadow-[#1e3a5f]/30 active:translate-y-0 active:scale-[0.99] disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
             {isSubmitting ? (
               <>
@@ -131,11 +151,12 @@ const ResetPasswordForm = ({ email, onSubmit, serverError }) => {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-slate-500">
+        {/* Back to login */}
+        <p data-aos="fade-up" data-aos-delay="200" className="mt-8 text-center text-sm text-slate-500">
           Quay lại{" "}
           <Link
             to="/login"
-            className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+            className="font-semibold text-blue-600 transition-colors hover:text-blue-700 hover:underline"
           >
             đăng nhập
           </Link>

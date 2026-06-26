@@ -31,6 +31,9 @@ import {
   getApplicationCancellationsThunk,
   approveCancellationThunk,
   rejectCancellationThunk,
+  getReviewTutorsThunk,
+  getAdminTutorReviewsThunk,
+  deleteReviewThunk,
 } from "./adminThunks";
 
 const adminSlice = createSlice({
@@ -72,7 +75,7 @@ const adminSlice = createSlice({
     classApplicationsLoading: false,
     classApplicationsError: null,
     classApplicationActionLoading: null,
-    classApplicationStats: { pending: 0, approved: 0, rejected: 0 },
+    classApplicationStats: { pending: 0, selected: 0, approved: 0, rejected: 0 },
     classApplicationStatsLoading: false,
     promos: [],
     promosPagination: {
@@ -108,7 +111,18 @@ const adminSlice = createSlice({
     trashLoading: false,
     trashError: null,
     trashActionLoading: null,
-    trashCounts: { users: 0, classes: 0, promos: 0 },
+    trashCounts: { users: 0, classes: 0, promos: 0, reviews: 0 },
+    // Quản lý đánh giá gia sư (admin)
+    reviewTutors: [],
+    reviewTutorsPagination: { page: 1, limit: 10, totalItems: 0, totalPages: 1 },
+    reviewTutorsLoading: false,
+    reviewTutorsError: null,
+    selectedReviewTutor: null,
+    tutorReviews: [],
+    tutorReviewsPagination: { page: 1, limit: 10, totalItems: 0, totalPages: 1 },
+    tutorReviewsLoading: false,
+    tutorReviewsError: null,
+    reviewActionLoading: null,
     profileChanges: [],
     profileChangesPagination: {
       page: 1,
@@ -570,6 +584,50 @@ const adminSlice = createSlice({
       })
       .addCase(rejectCancellationThunk.rejected, (state) => {
         state.cancellationActionLoading = null;
+      });
+
+    // ──────────────────────────── Review (đánh giá gia sư) ────────────────────────────
+    builder
+      .addCase(getReviewTutorsThunk.pending, (state) => {
+        state.reviewTutorsLoading = true;
+        state.reviewTutorsError = null;
+      })
+      .addCase(getReviewTutorsThunk.fulfilled, (state, action) => {
+        state.reviewTutorsLoading = false;
+        state.reviewTutors = action.payload.tutors || [];
+        if (action.payload.pagination) state.reviewTutorsPagination = action.payload.pagination;
+      })
+      .addCase(getReviewTutorsThunk.rejected, (state, action) => {
+        state.reviewTutorsLoading = false;
+        state.reviewTutorsError = action.payload;
+      });
+
+    builder
+      .addCase(getAdminTutorReviewsThunk.pending, (state) => {
+        state.tutorReviewsLoading = true;
+        state.tutorReviewsError = null;
+      })
+      .addCase(getAdminTutorReviewsThunk.fulfilled, (state, action) => {
+        state.tutorReviewsLoading = false;
+        state.tutorReviews = action.payload.reviews || [];
+        state.selectedReviewTutor = action.payload.tutor || state.selectedReviewTutor;
+        if (action.payload.pagination) state.tutorReviewsPagination = action.payload.pagination;
+      })
+      .addCase(getAdminTutorReviewsThunk.rejected, (state, action) => {
+        state.tutorReviewsLoading = false;
+        state.tutorReviewsError = action.payload;
+      });
+
+    builder
+      .addCase(deleteReviewThunk.pending, (state, action) => {
+        state.reviewActionLoading = action.meta.arg;
+      })
+      .addCase(deleteReviewThunk.fulfilled, (state, action) => {
+        state.reviewActionLoading = null;
+        state.tutorReviews = state.tutorReviews.filter((r) => r.id !== action.payload.id);
+      })
+      .addCase(deleteReviewThunk.rejected, (state) => {
+        state.reviewActionLoading = null;
       });
   },
 });

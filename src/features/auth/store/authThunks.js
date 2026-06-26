@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import authService from "@/features/auth/services/authService";
 import tokenStorage from "@/utils/tokenStorage";
+import { clearClassRequestFormDraft } from "@/features/classes/utils/classRequestFormDraftStorage";
 
 export const registerThunk = createAsyncThunk(
   "auth/register",
@@ -52,8 +53,11 @@ export const logoutThunk = createAsyncThunk(
     try {
       await authService.logout();
       tokenStorage.remove();
+      // Đăng xuất thì xóa luôn nháp form "tìm gia sư" đang lưu trong localStorage
+      clearClassRequestFormDraft();
     } catch (err) {
       tokenStorage.remove();
+      clearClassRequestFormDraft();
       return rejectWithValue(err.response?.data?.message || "Đăng xuất thất bại");
     }
   }

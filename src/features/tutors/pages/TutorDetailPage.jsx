@@ -4,12 +4,12 @@ import AOS from "aos";
 import tutorService from "@/features/tutors/services/tutorService";
 import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
 import { formatAvailabilitySlotsDetailed } from "@/features/classes/utils/classFormatters";
+import { StarRating, TutorReviewsSection } from "@/features/reviews";
 import {
   MapPin,
   BookOpen,
   GraduationCap,
-  Phone,
-  Mail,
+  ShieldCheck,
   ArrowLeft,
   Clock,
   Users,
@@ -139,7 +139,7 @@ export default function TutorDetailPage() {
           </div>
 
           {/* Stats pills */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full px-3 py-1 text-sm font-medium">
               <Users className="w-3.5 h-3.5" />
               {tutor.totalClassesAccepted ?? 0} lớp đã dạy
@@ -148,27 +148,41 @@ export default function TutorDetailPage() {
               <Trophy className="w-3.5 h-3.5" />
               {tutor.classesAcceptedThisMonth ?? 0} lớp tháng này
             </span>
+            {(tutor.reviewCount ?? 0) > 0 ? (
+              <span className="inline-flex items-center gap-1.5 bg-white border border-amber-200 rounded-full px-3 py-1 text-sm font-medium">
+                <StarRating value={tutor.averageRating ?? 0} size={15} />
+                <span className="font-semibold text-amber-600">{(tutor.averageRating ?? 0).toFixed(1)}</span>
+                <span className="text-gray-400">({tutor.reviewCount} đánh giá)</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-500 border border-gray-200 rounded-full px-3 py-1 text-sm font-medium">
+                <StarRating value={0} size={15} />
+                Chưa có đánh giá
+              </span>
+            )}
           </div>
         </div>
 
-        {/* CTA */}
+        {/* CTA — kết nối qua việc đăng bài, không lộ liên hệ trực tiếp */}
         <div className="shrink-0 flex flex-col gap-2 w-full sm:w-auto">
-          <Button className="bg-green-600 hover:bg-green-700 w-full sm:w-40">Liên Hệ Gia Sư</Button>
+          <Button
+            onClick={() => navigate("/find-tutor")}
+            className="bg-green-600 hover:bg-green-700 w-full sm:w-40"
+          >
+            Đăng bài tìm gia sư
+          </Button>
         </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
         {/* Left sidebar */}
         <div className="space-y-4" data-aos="fade-right">
-          {/* Thông tin liên hệ */}
-          <InfoCard title="Liên hệ">
-            {tutor.phone && (
-              <InfoRow icon={<Phone className="w-4 h-4 text-blue-500" />} label="Điện thoại" value={tutor.phone} />
-            )}
-            {tutor.email && (
-              <InfoRow icon={<Mail className="w-4 h-4 text-blue-500" />} label="Email" value={tutor.email} breakAll />
-            )}
-            {!tutor.phone && !tutor.email && <p className="text-sm text-gray-400">Chưa cập nhật</p>}
+          {/* Thông tin liên hệ được bảo mật cho tới khi ghép lớp */}
+          <InfoCard title="Liên hệ" icon={<ShieldCheck className="w-4 h-4 text-green-600" />}>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Thông tin liên hệ của gia sư được bảo mật. Số điện thoại và email chỉ được chia sẻ
+              giữa bạn và gia sư sau khi gia sư nhận lớp của bạn.
+            </p>
           </InfoCard>
 
           {/* Học vấn */}
@@ -257,6 +271,14 @@ export default function TutorDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Đánh giá từ học viên (nằm dưới thông tin gia sư) */}
+      <div className="mt-6">
+        <TutorReviewsSection
+          tutorId={tutor.id}
+          initialSummary={{ averageRating: tutor.averageRating ?? 0, reviewCount: tutor.reviewCount ?? 0 }}
+        />
+      </div>
     </div>
   );
 }
@@ -281,18 +303,6 @@ function InfoCard({ title, icon, children }) {
         {title}
       </h3>
       {children}
-    </div>
-  );
-}
-
-function InfoRow({ icon, label, value, breakAll }) {
-  return (
-    <div className="flex items-start gap-2 mb-2 last:mb-0">
-      <span className="mt-0.5 shrink-0">{icon}</span>
-      <div className="min-w-0">
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className={`text-sm text-gray-700 font-medium ${breakAll ? "break-all" : ""}`}>{value}</p>
-      </div>
     </div>
   );
 }

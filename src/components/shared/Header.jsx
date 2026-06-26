@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, ClipboardList, FileText, GraduationCap, LogOut, Ticket, UserRound } from "lucide-react";
+import { ChevronDown, ClipboardList, FileText, GraduationCap, LogOut, Menu, Ticket, UserRound, X } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -15,6 +15,7 @@ const Header = () => {
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef(null);
 
   const isTutor = user?.role === "tutor";
@@ -43,7 +44,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto grid h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-6 px-4 sm:px-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1e3a5f]">
             <GraduationCap className="h-7 w-7 text-white" />
           </div>
@@ -78,7 +79,7 @@ const Header = () => {
         </nav>
 
         {/* Right side */}
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-2 sm:gap-3">
           {isAuthenticated && user ? (
             <>
               {/* Notification bell */}
@@ -151,7 +152,7 @@ const Header = () => {
                       className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
                     >
                       <FileText className="h-4 w-4 text-slate-400" />
-                      Danh sách bài đăng
+                      Bài đăng của tôi
                     </Link>
 
                     <Link
@@ -179,20 +180,78 @@ const Header = () => {
             <>
               <Link
                 to="/login"
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#1e3a5f] px-5 text-sm font-semibold text-[#1e3a5f] transition-colors hover:bg-[#1e3a5f]/5"
+                className="hidden h-10 items-center justify-center rounded-lg border border-[#1e3a5f] px-5 text-sm font-semibold text-[#1e3a5f] transition-colors hover:bg-[#1e3a5f]/5 lg:inline-flex"
               >
                 Đăng nhập
               </Link>
               <Link
                 to="/register"
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-orange-500 px-5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+                className="hidden h-10 items-center justify-center rounded-lg bg-orange-500 px-5 text-sm font-semibold text-white transition-colors hover:bg-orange-600 lg:inline-flex"
               >
                 Đăng ký
               </Link>
             </>
           )}
+
+          {/* Hamburger (mobile/tablet) */}
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
+            aria-expanded={mobileOpen}
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 transition-colors hover:bg-slate-100 lg:hidden"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {mobileOpen && (
+        <div className="border-t border-slate-200 bg-white lg:hidden">
+          <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3 sm:px-6">
+            {navLinks.map((item) => {
+              const isActive = item.hash
+                ? location.hash === item.hash
+                : item.paths?.some((path) =>
+                    path === "/" ? location.pathname === path : location.pathname.startsWith(path)
+                  );
+
+              return (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+                    isActive ? "bg-slate-100 text-[#1e3a5f]" : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            {!(isAuthenticated && user) && (
+              <div className="mt-2 flex flex-col gap-2 border-t border-slate-100 pt-3">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-flex h-11 items-center justify-center rounded-lg border border-[#1e3a5f] px-5 text-sm font-semibold text-[#1e3a5f] transition-colors hover:bg-[#1e3a5f]/5"
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-flex h-11 items-center justify-center rounded-lg bg-orange-500 px-5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+                >
+                  Đăng ký
+                </Link>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 };

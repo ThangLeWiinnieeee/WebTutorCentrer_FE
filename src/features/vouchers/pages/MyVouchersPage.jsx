@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { Check, Copy, Loader2, Ticket } from "lucide-react";
+import AOS from "aos";
 
 import Pagination from "@/components/shared/Pagination";
 import { fetchMyVouchersThunk } from "@/features/vouchers/store/voucherThunks";
@@ -22,7 +23,7 @@ const discountLabel = (v) =>
     ? `Giảm ${v.discountValue}%${v.maxDiscountAmount ? ` (tối đa ${formatPrice(v.maxDiscountAmount)})` : ""}`
     : `Giảm ${formatPrice(v.discountValue)}`;
 
-const VoucherCard = ({ voucher }) => {
+const VoucherCard = ({ voucher, index = 0 }) => {
   const [copied, setCopied] = useState(false);
   const meta = STATUS_META[voucher.status] || STATUS_META.active;
   const usable = voucher.status === "active";
@@ -40,6 +41,8 @@ const VoucherCard = ({ voucher }) => {
 
   return (
     <div
+      data-aos="fade-up"
+      data-aos-delay={Math.min(index, 5) * 50}
       className={`flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between ${
         usable ? "border-emerald-200" : "border-slate-200 opacity-80"
       }`}
@@ -87,6 +90,11 @@ export default function MyVouchersPage() {
     dispatch(fetchMyVouchersThunk({ page, limit: PAGE_SIZE }));
   }, [dispatch, page]);
 
+  // Tính lại vị trí animation khi danh sách (tải bất đồng bộ) thay đổi
+  useEffect(() => {
+    AOS.refresh();
+  }, [loading, items.length]);
+
   const totalPages = pagination?.totalPages || 1;
   const handlePageChange = (next) => {
     setPage(next);
@@ -95,7 +103,7 @@ export default function MyVouchersPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex items-center gap-3" data-aos="fade-down">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
           <Ticket className="h-6 w-6" />
         </div>
@@ -125,8 +133,8 @@ export default function MyVouchersPage() {
 
       {items.length > 0 && (
         <div className="space-y-4">
-          {items.map((voucher) => (
-            <VoucherCard key={voucher.id} voucher={voucher} />
+          {items.map((voucher, idx) => (
+            <VoucherCard key={voucher.id} voucher={voucher} index={idx} />
           ))}
         </div>
       )}

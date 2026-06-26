@@ -29,7 +29,7 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="auth-shell flex min-h-dvh w-full">
       <AuthLeftPanel />
       <ForgotPasswordForm
         defaultEmail={defaultEmail}

@@ -10,6 +10,7 @@ import {
   User2,
 } from "lucide-react";
 import { GENDER_LABEL, OCCUPATION_STATUS_LABEL, getAgeFromDate } from "@/features/tutors/constants";
+import { StarRating } from "@/features/reviews";
 
 const getInitials = (name) =>
   (name || "")
@@ -36,6 +37,8 @@ export default function TutorCard({ tutor }) {
   const locationParts = [tutor.currentArea?.districtName, tutor.currentArea?.provinceName].filter(Boolean);
   const totalClasses = tutor.totalClassesAccepted || 0;
   const monthClasses = tutor.classesAcceptedThisMonth || 0;
+  const reviewCount = tutor.reviewCount || 0;
+  const averageRating = tutor.averageRating || 0;
 
   const schoolLabel = tutor.schoolName
     ? `${tutor.schoolName}${tutor.graduationYear ? ` · TN ${tutor.graduationYear}` : ""}`
@@ -65,6 +68,18 @@ export default function TutorCard({ tutor }) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <h3 className="text-xl font-bold leading-tight text-slate-900 group-hover:text-[#1e3a5f]">{tutor.fullName}</h3>
+          {reviewCount > 0 ? (
+            <span className="inline-flex items-center gap-1">
+              <StarRating value={averageRating} size={15} />
+              <span className="text-sm font-semibold text-amber-600">{averageRating.toFixed(1)}</span>
+              <span className="text-xs text-slate-400">({reviewCount})</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+              <StarRating value={0} size={14} />
+              Chưa có đánh giá
+            </span>
+          )}
         </div>
 
         {/* Detail grid */}

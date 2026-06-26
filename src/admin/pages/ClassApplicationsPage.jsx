@@ -53,8 +53,9 @@ const occupationLabel = (value) =>
 
 const PAGE_SIZE = 10;
 
+// Admin chỉ thao tác trên đơn "selected" (gia sư đã được người đăng chọn, chờ duyệt lớp)
 const TABS = [
-  { key: "pending", label: "Chờ duyệt", color: "amber" },
+  { key: "selected", label: "Chờ duyệt", color: "amber" },
   { key: "approved", label: "Đã duyệt", color: "emerald" },
   { key: "rejected", label: "Từ chối", color: "rose" },
 ];
@@ -444,7 +445,7 @@ const ApplicationRow = ({ application, activeTab, actionLoading, onApprove, onRe
       </div>
 
       {/* Hành động / trạng thái */}
-      {activeTab === "pending" ? (
+      {activeTab === "selected" ? (
         <div className="flex items-center gap-2 border-t border-slate-100 pt-3 xl:border-l xl:border-t-0 xl:pl-3 xl:pt-0">
           <Button
             type="button"
@@ -499,7 +500,7 @@ const ClassApplicationsPage = () => {
     classApplicationStatsLoading,
   } = useSelector((state) => state.admin);
 
-  const [activeTab, setActiveTab] = useState("pending");
+  const [activeTab, setActiveTab] = useState("selected");
   const [page, setPage] = useState(1);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -568,13 +569,13 @@ const ClassApplicationsPage = () => {
   }, [classApplications, searchQuery]);
 
   const statCount = {
-    pending: classApplicationStats.pending,
+    selected: classApplicationStats.selected,
     approved: classApplicationStats.approved,
     rejected: classApplicationStats.rejected,
   };
 
   const emptyMessages = {
-    pending: { title: "Không có đơn nào đang chờ", sub: "Tất cả yêu cầu nhận lớp đã được xử lý." },
+    selected: { title: "Không có đơn nào chờ duyệt", sub: "Đơn gia sư người đăng đã chọn sẽ hiển thị ở đây." },
     approved: { title: "Chưa có đơn nào được duyệt", sub: "Các đơn được duyệt sẽ hiển thị ở đây." },
     rejected: { title: "Chưa có đơn nào bị từ chối", sub: "Các đơn bị từ chối sẽ hiển thị ở đây." },
   };
@@ -587,7 +588,7 @@ const ClassApplicationsPage = () => {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Quản lý duyệt nhận lớp</h1>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600">
-              Mỗi dòng hiển thị mã lớp và gia sư ứng tuyển. Bấm để xem chi tiết bài đăng hoặc hồ sơ gia sư trước khi duyệt.
+              Mỗi dòng là gia sư đã được người đăng chọn, đang chờ bạn duyệt. Bấm để xem chi tiết bài đăng hoặc hồ sơ gia sư trước khi duyệt.
             </p>
           </div>
           <Button
@@ -609,7 +610,7 @@ const ClassApplicationsPage = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard label="Chờ duyệt" count={statCount.pending} color="amber" loading={classApplicationStatsLoading} />
+        <StatCard label="Chờ duyệt" count={statCount.selected} color="amber" loading={classApplicationStatsLoading} />
         <StatCard label="Đã duyệt" count={statCount.approved} color="emerald" loading={classApplicationStatsLoading} />
         <StatCard label="Từ chối" count={statCount.rejected} color="rose" loading={classApplicationStatsLoading} />
       </div>

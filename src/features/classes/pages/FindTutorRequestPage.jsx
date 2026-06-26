@@ -18,6 +18,7 @@ import {
   Copy,
   GraduationCap,
   Lightbulb,
+  Loader2,
   MapPinHouse,
   PhoneCall,
   Plus,
@@ -677,7 +678,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null }) => {
       clearClassRequestFormDraft();
       toast.success("Đăng lớp cần gia sư thành công");
       const createdClass = result.payload;
-      const classId = createdClass?._id;
+      const classId = createdClass?.id || createdClass?._id;
 
       // Clear flow states & reset form
       dispatch(clearClassFlow());
@@ -739,7 +740,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/60">
+    <div className="min-h-screen bg-slate-50/60 animate-in fade-in duration-500 motion-reduce:animate-none">
       <div className="mx-auto max-w-[1360px] px-4 py-6 md:px-6 md:py-8">
         <BookingProgressHeader control={form.control} isEdit={isEdit} />
 
@@ -1142,27 +1143,9 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null }) => {
                       {error}
                     </div>
                   )}
-                  <div className="hidden md:block">
-                    <Button
-                      type="submit"
-                      className="h-12 w-full rounded-xl bg-emerald-600 text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-700"
-                      disabled={isEdit ? saving : loadingQuote}
-                    >
-                      {isEdit
-                        ? saving
-                          ? "Đang lưu..."
-                          : "Lưu thay đổi"
-                        : loadingQuote
-                          ? "Đang xử lý..."
-                          : "Xem báo giá & xác nhận"}
-                    </Button>
-                  </div>
-                </section>
-
-                <div className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
                   <Button
                     type="submit"
-                    className="h-12 w-full rounded-xl bg-emerald-600 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                    className="h-12 w-full rounded-xl bg-emerald-600 text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-700"
                     disabled={isEdit ? saving : loadingQuote}
                   >
                     {isEdit
@@ -1173,7 +1156,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null }) => {
                         ? "Đang xử lý..."
                         : "Xem báo giá & xác nhận"}
                   </Button>
-                </div>
+                </section>
               </form>
             )}
 
@@ -1265,7 +1248,7 @@ const FindTutorRequestFormContent = ({ pricingConfig, editClass = null }) => {
             )}
           </div>
 
-          <aside className="space-y-4 lg:col-span-3">
+          <aside className="hidden space-y-4 lg:col-span-3 lg:block">
             <div className="top-6 space-y-4 lg:sticky">
               <BookingSummaryAsideCard control={form.control} provinces={provinces} districts={districts} quote={quote} />
 
@@ -1339,8 +1322,11 @@ const FindTutorRequestPage = () => {
 
   if (loadingPricingConfig || loadingClass) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-16 text-center text-slate-600">
-        {loadingClass ? "Đang tải bài đăng..." : "Đang tải cấu hình học phí..."}
+      <div className="flex min-h-screen items-start justify-center bg-slate-50/60 px-4 pt-32 text-center text-slate-600">
+        <div className="flex items-center gap-2 animate-in fade-in duration-300">
+          <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
+          {loadingClass ? "Đang tải bài đăng..." : "Đang tải cấu hình học phí..."}
+        </div>
       </div>
     );
   }

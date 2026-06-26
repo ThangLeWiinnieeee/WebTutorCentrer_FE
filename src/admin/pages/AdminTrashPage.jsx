@@ -6,11 +6,14 @@ import {
   Loader2,
   RefreshCw,
   RotateCcw,
+  Star,
   Ticket,
   Trash2,
   Users,
   X,
 } from "lucide-react";
+
+import { StarRating } from "@/features/reviews";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,12 +34,14 @@ const TABS = [
   { key: "users", label: "Người dùng", icon: Users },
   { key: "classes", label: "Bài đăng", icon: BookOpen },
   { key: "promos", label: "Mã ưu đãi", icon: Ticket },
+  { key: "reviews", label: "Đánh giá", icon: Star },
 ];
 
 // Mô tả ngắn của item theo loại — dùng trong modal xác nhận xóa vĩnh viễn
 const describeItem = (type, item) => {
   if (type === "users") return item.fullName || item.email;
   if (type === "classes") return `#${item.classCode} · ${item.subject}`;
+  if (type === "reviews") return `${item.rating}★ từ ${item.reviewerName}`;
   return item.code;
 };
 
@@ -116,6 +121,17 @@ const PrimaryCell = ({ type, item }) => {
       </div>
     );
   }
+  if (type === "reviews") {
+    return (
+      <div>
+        <div className="flex items-center gap-2">
+          <StarRating value={item.rating} size={13} />
+          <span className="text-xs text-slate-500">từ {item.reviewerName}</span>
+        </div>
+        <p className="mt-0.5 max-w-xs truncate text-xs text-slate-500">{item.comment}</p>
+      </div>
+    );
+  }
   return (
     <div>
       <p className="text-sm font-bold text-slate-800">{item.code}</p>
@@ -134,6 +150,9 @@ const SecondaryCell = ({ type, item }) => {
         {item.createdBy?.fullName || item.createdBy?.email || "Người dùng đã xóa"}
       </span>
     );
+  }
+  if (type === "reviews") {
+    return <span className="text-sm text-slate-600">{item.tutorName}</span>;
   }
   return (
     <span className="text-sm text-slate-600">

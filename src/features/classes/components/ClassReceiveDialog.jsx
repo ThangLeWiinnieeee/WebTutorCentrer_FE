@@ -27,8 +27,8 @@ const DIALOG_CONFIG = {
   confirm: {
     icon: Send,
     iconClassName: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    title: "Xác nhận gửi yêu cầu nhận lớp",
-    description: "Admin sẽ xem xét và duyệt yêu cầu của bạn. Bạn sẽ nhận được thông báo khi có kết quả.",
+    title: "Xác nhận ứng tuyển lớp này",
+    description: "Người đăng sẽ xem hồ sơ và chọn gia sư phù hợp. Nếu được chọn, đơn sẽ chuyển admin duyệt và bạn sẽ nhận thông báo.",
   },
   mismatch: {
     icon: AlertTriangle,
@@ -39,8 +39,8 @@ const DIALOG_CONFIG = {
   submitted: {
     icon: CheckCircle2,
     iconClassName: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    title: "Đã gửi yêu cầu thành công",
-    description: "Yêu cầu nhận lớp của bạn đã được gửi. Vui lòng chờ admin xét duyệt — bạn sẽ nhận thông báo khi có kết quả.",
+    title: "Đã ứng tuyển thành công",
+    description: "Đơn ứng tuyển của bạn đã được gửi tới người đăng. Nếu được chọn, admin sẽ duyệt lớp — bạn sẽ nhận thông báo khi có kết quả.",
   },
 };
 

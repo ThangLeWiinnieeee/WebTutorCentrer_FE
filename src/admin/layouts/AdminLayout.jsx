@@ -1,12 +1,13 @@
 import { createElement } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog, ClipboardCheck, Settings, Ticket, FileText, Trash2, UserCheck, Ban, BookOpen } from "lucide-react";
+import { GraduationCap, Users, LogOut, LayoutDashboard, ShieldAlert, UserCog, ClipboardCheck, Settings, Ticket, FileText, Trash2, UserCheck, Ban, BookOpen, Star } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import { logoutThunk } from "@/features/auth/store/authThunks";
 import { getInitials } from "@/features/profile";
 import { Button } from "@/components/ui/button";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
 const NavItem = ({ to, icon, label, active }) => (
   <Link
@@ -50,6 +51,7 @@ const AdminLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
+      <ScrollToTop />
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 w-60 bg-white border-r border-slate-200 flex flex-col">
         {/* Logo */}
@@ -121,6 +123,12 @@ const AdminLayout = () => {
             icon={BookOpen}
             label="Quản lý môn học"
             active={location.pathname === "/admin/subjects"}
+          />
+          <NavItem
+            to="/admin/reviews"
+            icon={Star}
+            label="Quản lý đánh giá"
+            active={location.pathname === "/admin/reviews"}
           />
           <NavItem
             to="/admin/trash"

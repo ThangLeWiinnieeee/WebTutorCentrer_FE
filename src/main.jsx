@@ -14,6 +14,8 @@ AOS.init({
   easing: "ease-out-cubic",
   once: true,
   offset: 80,
+  // Tôn trọng người dùng bật "giảm chuyển động" trong hệ điều hành
+  disable: () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
 });
 
 createRoot(document.getElementById("root")).render(
