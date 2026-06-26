@@ -40,6 +40,10 @@ const adminService = {
   getSubjects: (params) => axiosInstance.get(API_ENDPOINTS.SUBJECTS.ADMIN_LIST, { params }),
   createSubject: (payload) => axiosInstance.post(API_ENDPOINTS.SUBJECTS.CREATE, payload),
   updateSubject: (id, payload) => axiosInstance.patch(API_ENDPOINTS.SUBJECTS.UPDATE(id), payload),
+  getReviewTutors: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.REVIEW_TUTORS, { params }),
+  getTutorReviews: (tutorId, params) =>
+    axiosInstance.get(API_ENDPOINTS.ADMIN.REVIEW_TUTOR_REVIEWS(tutorId), { params }),
+  deleteReview: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.REVIEW_DELETE(id)),
 };
 
 export default adminService;

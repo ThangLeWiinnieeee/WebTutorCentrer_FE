@@ -3,17 +3,22 @@ import AOS from "aos";
 
 import {
   ArrowRight,
+  Award,
   BookOpenText,
   CalendarClock,
   CheckCircle2,
   Clock3,
   FilePlus2,
   FileText,
+  GraduationCap,
   Loader2,
   MapPin,
   Pencil,
+  Phone,
   RefreshCw,
+  Star,
   Trash2,
+  UserCheck,
   Users,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,6 +32,9 @@ import {
 } from "@/features/classes/store/classThunks";
 import { formatDateTime, formatPrice, formatStudentGender } from "@/features/classes/utils/classFormatters";
 import Pagination from "@/components/shared/Pagination";
+import ClassApplicantsDialog from "@/features/classes/components/ClassApplicantsDialog";
+import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from "@/features/tutors/constants";
+import { ReviewDialog } from "@/features/reviews";
 
 const PAGE_SIZE = 5;
 
@@ -55,6 +63,24 @@ export default function MyPostsPanel() {
   const [completingId, setCompletingId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  // Bài đăng đang mở hộp thoại "Gia sư ứng tuyển"
+  const [applicantsPost, setApplicantsPost] = useState(null);
+  // Bài đăng đang mở hộp thoại "Đánh giá gia sư"
+  const [reviewTarget, setReviewTarget] = useState(null);
+
+  // Mở danh sách gia sư ứng tuyển (chặn điều hướng của thẻ Link bao ngoài)
+  const openApplicants = (e, item) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setApplicantsPost(item);
+  };
+
+  // Mở hộp thoại đánh giá gia sư (chỉ với lớp đã hoàn thành, chưa đánh giá)
+  const openReview = (e, item) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setReviewTarget(item);
+  };
 
   // Người đăng xác nhận hoàn thành lớp (lớp đang ở trạng thái matched)
   const handleComplete = async (e, id) => {
@@ -120,7 +146,7 @@ export default function MyPostsPanel() {
             <FileText className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Danh sách bài đăng</h3>
+            <h3 className="text-lg font-bold text-slate-900">Bài đăng của tôi</h3>
             <p className="mt-0.5 text-sm text-slate-500">
               Các bài đăng tìm gia sư bạn đã tạo {totalItems > 0 ? `(${totalItems})` : ""}
             </p>
@@ -241,6 +267,61 @@ export default function MyPostsPanel() {
               </div>
             </div>
 
+            {item.matchedTutor && (
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                <div className="flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50/60 p-3">
+                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-sky-200">
+                    {item.matchedTutor.avatar ? (
+                      <img
+                        src={item.matchedTutor.avatar}
+                        alt={item.matchedTutor.fullName || "Gia sư"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-sky-600">
+                        {(item.matchedTutor.fullName || "?").charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-white px-2 py-0.5 text-xs font-semibold text-sky-700">
+                        <UserCheck className="h-3.5 w-3.5" />
+                        Gia sư đã nhận lớp
+                      </span>
+                      <span className="font-semibold text-slate-900">{item.matchedTutor.fullName || "Gia sư"}</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                      <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                        <Award className="h-3.5 w-3.5" />
+                        Đã dạy {item.matchedTutor.totalClassesAccepted || 0} lớp
+                      </span>
+                      {item.matchedTutor.occupationStatus && (
+                        <span className="inline-flex items-center gap-1">
+                          <GraduationCap className="h-3.5 w-3.5" />
+                          {OCCUPATION_STATUS_LABEL[item.matchedTutor.occupationStatus] || item.matchedTutor.occupationStatus}
+                        </span>
+                      )}
+                      {item.matchedTutor.gender && <span>{GENDER_LABEL[item.matchedTutor.gender] || ""}</span>}
+                    </div>
+                    {item.matchedTutor.schoolName && (
+                      <p className="mt-1 truncate text-xs text-slate-500">
+                        {item.matchedTutor.schoolName}
+                        {item.matchedTutor.graduationYear ? ` · TN ${item.matchedTutor.graduationYear}` : ""}
+                      </p>
+                    )}
+                    <p className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                      <Phone className="h-3.5 w-3.5 text-emerald-600" />
+                      {item.matchedTutor.phone || "Chưa cập nhật số điện thoại"}
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  Admin đã duyệt gia sư này cho bài đăng của bạn. Bạn có thể liên hệ trực tiếp với gia sư qua số điện thoại trên.
+                </p>
+              </div>
+            )}
+
             {item.status === "matched" && (
               <div className="mt-3 border-t border-slate-100 pt-3">
                 {item.completedByPoster ? (
@@ -262,6 +343,39 @@ export default function MyPostsPanel() {
                     Xác nhận đã hoàn thành
                   </Button>
                 )}
+              </div>
+            )}
+
+            {item.status === "completed" && item.matchedTutor && (
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                {item.reviewed ? (
+                  <p className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    Bạn đã đánh giá gia sư cho lớp này.
+                  </p>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={(e) => openReview(e, item)}
+                    className="h-9 rounded-lg bg-amber-500 px-4 text-sm font-semibold text-white hover:bg-amber-600"
+                  >
+                    <Star className="mr-2 h-4 w-4" />
+                    Đánh giá gia sư
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {item.status === "open" && item.applicantCount > 0 && (
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                <Button
+                  type="button"
+                  onClick={(e) => openApplicants(e, item)}
+                  className="h-9 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Gia sư ứng tuyển ({item.applicantCount})
+                </Button>
               </div>
             )}
 
@@ -307,6 +421,23 @@ export default function MyPostsPanel() {
       {!loadingMyPosts && myPosts.length > 0 && (
         <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} className="pt-2" />
       )}
+
+      {/* Hộp thoại danh sách gia sư ứng tuyển + chọn gia sư */}
+      <ClassApplicantsDialog
+        open={!!applicantsPost}
+        post={applicantsPost}
+        onClose={() => setApplicantsPost(null)}
+        onSelected={() => dispatch(fetchMyPostsThunk({ page, limit: PAGE_SIZE }))}
+      />
+
+      {/* Hộp thoại đánh giá gia sư (lớp đã hoàn thành) */}
+      <ReviewDialog
+        open={!!reviewTarget}
+        classItem={reviewTarget}
+        tutor={reviewTarget?.matchedTutor}
+        onClose={() => setReviewTarget(null)}
+        onSuccess={() => dispatch(fetchMyPostsThunk({ page, limit: PAGE_SIZE }))}
+      />
 
       {/* Hộp xác nhận xóa bài đăng */}
       {deleteTarget && (

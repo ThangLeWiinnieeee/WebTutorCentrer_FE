@@ -5,14 +5,17 @@ import {
 
 import {
   ArrowRight,
+  Award,
   BookOpenText,
   CalendarClock,
   CalendarDays,
   CircleHelp,
   Clock3,
   FileText,
+  GraduationCap,
   MapPin,
   PhoneCall,
+  UserCheck,
   UserRound,
   Users,
 } from 'lucide-react';
@@ -41,6 +44,7 @@ import {
 } from '@/features/classes/utils/classFormatters';
 import useAuth from '@/features/auth/hooks/useAuth';
 import tutorService from '@/features/tutors/services/tutorService';
+import { OCCUPATION_STATUS_LABEL, GENDER_LABEL } from '@/features/tutors/constants';
 import { toast } from 'sonner';
 import AOS from 'aos';
 
@@ -63,16 +67,17 @@ const NewClassDetailPage = () => {
 
   // Tính lại vị trí animation sau khi chi tiết lớp được tải
   useEffect(() => {
-    if (detail?._id) AOS.refresh();
-  }, [detail?._id]);
+    if (detail?.id || detail?._id) AOS.refresh();
+  }, [detail?.id]);
 
   const mapClassToListItem = (item) => ({
-    id: item._id,
+    id: item.id || item._id,
     title: `${item.subject} - ${item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}`,
   });
 
   useEffect(() => {
-    if (!detail?._id) return;
+    const detailId = detail?.id || detail?._id;
+    if (!detailId) return;
 
     let isCancelled = false;
     const fetchSuggestionData = async () => {
@@ -91,10 +96,10 @@ const NewClassDetailPage = () => {
         if (isCancelled) return;
 
         const relatedItems = (relatedRes.data?.data?.classes || [])
-          .filter((item) => item._id !== detail._id)
+          .filter((item) => (item.id || item._id) !== detailId)
           .map(mapClassToListItem);
         const latestItems = (latestRes.data?.data?.classes || [])
-          .filter((item) => item._id !== detail._id)
+          .filter((item) => (item.id || item._id) !== detailId)
           .map(mapClassToListItem);
 
         setRelatedClasses(relatedItems.slice(0, 4));
@@ -115,13 +120,13 @@ const NewClassDetailPage = () => {
     return () => {
       isCancelled = true;
     };
-  }, [detail?._id, detail?.provinceCode, detail?.subject]);
+  }, [detail?.id, detail?.provinceCode, detail?.subject]);
 
   if (loadingDetail || loading) {
     return (
       <div className="mx-auto max-w-[1360px] px-6 py-8">
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-9 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-9">
             <div className="animate-pulse space-y-4">
               <div className="h-8 w-2/3 rounded bg-slate-200" />
               <div className="h-4 w-1/3 rounded bg-slate-200" />
@@ -133,7 +138,7 @@ const NewClassDetailPage = () => {
               </div>
             </div>
           </div>
-          <div className="col-span-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-3">
             <div className="animate-pulse space-y-3">
               <div className="h-20 rounded-lg bg-slate-200" />
               <div className="h-8 rounded bg-slate-200" />
@@ -226,14 +231,42 @@ const NewClassDetailPage = () => {
     }
   };
 
+  // Ô phí nhận lớp + CTA dùng chung: desktop nổi góc phải bài, điện thoại đặt xuống cuối
+  const priceCard = (extraClass) => (
+    <div
+      data-aos="zoom-in"
+      className={`rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-right ${extraClass}`}
+    >
+      <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
+      <p className="mt-1 text-4xl font-bold leading-none text-emerald-700">
+        {formatPrice(Math.round((detail.feePerMonth || 0) * 0.05))}
+      </p>
+      <p className="mt-1 text-xs text-emerald-700/80">5% học phí tháng đầu</p>
+      {isOwnPost ? (
+        <div className="mt-3 flex h-11 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
+          Bài đăng của bạn
+        </div>
+      ) : (
+        <Button
+          type="button"
+          className="mt-3 h-11 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
+          onClick={handleReceiveClass}
+        >
+          Nhận lớp ngay
+          <ArrowRight className="ml-1.5 h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <div className="mx-auto max-w-[1360px] px-6 py-8">
-      <div className="grid grid-cols-12 gap-6">
-        <section className="col-span-9 space-y-5">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <section className="min-w-0 space-y-5 lg:col-span-9">
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-aos="fade-up">
-            <div className="flex items-start justify-between gap-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
               <div className="min-w-0">
-                <h1 className="text-3xl font-semibold leading-tight text-slate-900">
+                <h1 className="text-2xl font-semibold leading-tight text-slate-900 sm:text-3xl">
                   {detail.subject} - {detail.summary || `Cần Gia Sư tại ${detail.districtName || ''}, ${detail.provinceName || ''}`}
                 </h1>
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
@@ -244,31 +277,18 @@ const NewClassDetailPage = () => {
                   <Clock3 className="h-4 w-4" />
                   <span>{formatDateTime(detail.createdAt)}</span>
                 </div>
+                {/* Học phí / buổi — kiểu gọn giống bài đăng ngoài danh sách */}
+                <div className="mt-2 flex items-center gap-2">
+                  <BookOpenText className="h-4 w-4 text-emerald-600" />
+                  <span className="text-sm text-slate-500">Học phí / buổi:</span>
+                  <strong className="text-lg font-bold leading-none text-emerald-600">
+                    {formatPrice(detail.feePerSession)}
+                  </strong>
+                </div>
               </div>
 
-              <div className="w-[250px] shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-right">
-                <p className="text-xs uppercase tracking-wide text-emerald-700">Học phí / buổi</p>
-                <p className="mt-1 text-4xl font-bold leading-none text-emerald-700">
-                  {formatPrice(detail.feePerSession)}
-                </p>
-                <p className="mt-1 text-xs text-emerald-700/80">
-                  Ước tính/tháng: {formatPrice(detail.feePerMonth)}
-                </p>
-                {isOwnPost ? (
-                  <div className="mt-3 flex h-11 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
-                    Bài đăng của bạn
-                  </div>
-                ) : (
-                  <Button
-                    type="button"
-                    className="mt-3 h-11 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
-                    onClick={handleReceiveClass}
-                  >
-                    Nhận lớp ngay
-                    <ArrowRight className="ml-1.5 h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              {/* Desktop/tablet: ô phí nhận lớp nổi góc phải. Điện thoại ẩn, hiển thị ở cuối bài */}
+              {priceCard("hidden w-full shrink-0 sm:block sm:w-[250px]")}
             </div>
 
             <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-4">
@@ -277,7 +297,7 @@ const NewClassDetailPage = () => {
               </p>
             </div>
 
-            <div className="mt-5 grid grid-cols-3 gap-3">
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-lg border border-slate-100 bg-white px-3 py-3">
                 <p className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <Users className="h-4 w-4 text-emerald-600" />
@@ -308,7 +328,7 @@ const NewClassDetailPage = () => {
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-600">
+            <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-2 text-sm text-slate-600 sm:grid-cols-2">
               <div className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
                 <p>Địa điểm: {detail.locationLabel || "-"}</p>
@@ -338,11 +358,71 @@ const NewClassDetailPage = () => {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          {detail.matchedTutor && (
+            <article className="rounded-2xl border border-sky-200 bg-sky-50/40 p-5 shadow-sm" data-aos="fade-up">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-sky-700">
+                <UserCheck className="h-4 w-4" />
+                Gia sư đã nhận lớp
+              </h3>
+              <div className="flex items-start gap-4">
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-sky-200">
+                  {detail.matchedTutor.avatar ? (
+                    <img
+                      src={detail.matchedTutor.avatar}
+                      alt={detail.matchedTutor.fullName || "Gia sư"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-sky-600">
+                      {(detail.matchedTutor.fullName || "?").charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-semibold text-slate-900">{detail.matchedTutor.fullName || "Gia sư"}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+                    <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                      <Award className="h-4 w-4" />
+                      Đã dạy {detail.matchedTutor.totalClassesAccepted || 0} lớp
+                    </span>
+                    {detail.matchedTutor.occupationStatus && (
+                      <span className="inline-flex items-center gap-1">
+                        <GraduationCap className="h-4 w-4" />
+                        {OCCUPATION_STATUS_LABEL[detail.matchedTutor.occupationStatus] || detail.matchedTutor.occupationStatus}
+                      </span>
+                    )}
+                    {detail.matchedTutor.gender && <span>{GENDER_LABEL[detail.matchedTutor.gender] || ""}</span>}
+                  </div>
+                  {detail.matchedTutor.schoolName && (
+                    <p className="mt-1 text-sm text-slate-500">
+                      {detail.matchedTutor.schoolName}
+                      {detail.matchedTutor.graduationYear ? ` · TN ${detail.matchedTutor.graduationYear}` : ""}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-3 rounded-xl border border-sky-200 bg-white px-4 py-3">
+                <PhoneCall className="h-5 w-5 shrink-0 text-emerald-600" />
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-500">Số điện thoại gia sư</p>
+                  <p className="text-base font-bold text-slate-900">{detail.matchedTutor.phone || "Chưa cập nhật"}</p>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-slate-500">
+                Admin đã duyệt gia sư này cho bài đăng của bạn. Bạn có thể liên hệ trực tiếp với gia sư qua số điện thoại trên.
+              </p>
+            </article>
+          )}
+
+          <article
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            data-aos="fade-up"
+            data-aos-delay="100"
+          >
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Thông tin nhận lớp
             </h3>
-            <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
+            <div className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
               <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 text-slate-700">
                 <p className="text-xs text-slate-500">Hoa hồng nhận lớp</p>
                 <p className="font-semibold text-slate-900">5% học phí tháng đầu</p>
@@ -358,7 +438,10 @@ const NewClassDetailPage = () => {
             </div>
           </article>
 
-          <div className="grid grid-cols-2 gap-4" data-aos="fade-up" data-aos-delay="100">
+          {/* Điện thoại: học phí + nút nhận lớp đặt ở cuối cùng */}
+          {priceCard("w-full sm:hidden")}
+
+          <div className="hidden gap-4 sm:grid sm:grid-cols-2" data-aos="fade-up" data-aos-delay="100">
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900">Các lớp tương tự</h3>
@@ -409,7 +492,7 @@ const NewClassDetailPage = () => {
           </div>
         </section>
 
-        <aside className="col-span-3 space-y-4" data-aos="fade-left" data-aos-delay="100">
+        <aside className="hidden space-y-4 lg:col-span-3 lg:block" data-aos="fade-left" data-aos-delay="100">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
               Thông tin nhanh

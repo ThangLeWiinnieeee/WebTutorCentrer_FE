@@ -10,4 +10,5 @@ export { default as AdminSubjectsPage } from "./pages/AdminSubjectsPage";
 export { default as AdminSettingsPage } from "./pages/AdminSettingsPage";
 export { default as AdminProfileChangesPage } from "./pages/AdminProfileChangesPage";
 export { default as AdminApplicationCancellationsPage } from "./pages/AdminApplicationCancellationsPage";
+export { default as AdminReviewsPage } from "./pages/AdminReviewsPage";
 export { default as adminReducer } from "./store/adminSlice";

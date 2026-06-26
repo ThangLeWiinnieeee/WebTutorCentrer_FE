@@ -1,5 +1,7 @@
 import { MapPin, Users } from "lucide-react";
 
+import { StarRating } from "@/features/reviews";
+
 const getInitials = (name) =>
   (name || "")
     .split(" ")
@@ -10,6 +12,8 @@ const getInitials = (name) =>
 
 export default function TopTutorCard({ tutor, rank }) {
   const locationParts = [tutor.currentArea?.districtName, tutor.currentArea?.provinceName].filter(Boolean);
+  const reviewCount = tutor.reviewCount || 0;
+  const averageRating = tutor.averageRating || 0;
 
   return (
     <div className="relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md">
@@ -33,6 +37,13 @@ export default function TopTutorCard({ tutor, rank }) {
         </div>
 
         <h3 className="mt-3 line-clamp-1 text-center text-sm font-bold text-slate-900">{tutor.fullName}</h3>
+
+        {reviewCount > 0 && (
+          <div className="mt-1 flex items-center justify-center gap-1">
+            <StarRating value={averageRating} size={13} />
+            <span className="text-xs font-semibold text-amber-600">{averageRating.toFixed(1)}</span>
+          </div>
+        )}
 
         {locationParts.length > 0 && (
           <div className="mt-1 flex items-start justify-center gap-1 text-xs text-slate-500">

@@ -396,3 +396,41 @@ export const updateSubjectThunk = createAsyncThunk(
     }
   }
 );
+
+// ──────────────────────────── Review (đánh giá gia sư) ────────────────────────────
+
+export const getReviewTutorsThunk = createAsyncThunk(
+  "admin/getReviewTutors",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getReviewTutors(params);
+      return res.data.data; // { tutors, pagination }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách gia sư");
+    }
+  }
+);
+
+export const getAdminTutorReviewsThunk = createAsyncThunk(
+  "admin/getTutorReviews",
+  async ({ tutorId, params }, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getTutorReviews(tutorId, params);
+      return res.data.data; // { tutor, reviews, pagination }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không lấy được danh sách đánh giá");
+    }
+  }
+);
+
+export const deleteReviewThunk = createAsyncThunk(
+  "admin/deleteReview",
+  async (id, { rejectWithValue }) => {
+    try {
+      await adminService.deleteReview(id);
+      return { id };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Xóa đánh giá thất bại");
+    }
+  }
+);

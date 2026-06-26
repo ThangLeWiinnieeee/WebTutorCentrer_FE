@@ -9,10 +9,13 @@ const MultiCheckbox = ({ options, value = [], onChange, columns = 3, lockedValue
     }
   };
 
+  // Trên điện thoại luôn 2 cột để chữ không bị bóp; từ sm+ dùng số cột yêu cầu.
+  const smColsClass =
+    columns === 2 ? "sm:grid-cols-2" : columns === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3";
+
   return (
     <div
-      className={`grid gap-2 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3`}
-      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      className={`grid max-h-48 grid-cols-2 gap-2 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3 ${smColsClass}`}
     >
       {options.map((opt) => {
         const isSelected = value.includes(opt);

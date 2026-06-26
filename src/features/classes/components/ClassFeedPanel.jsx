@@ -21,11 +21,24 @@ import ClassReceiveDialog from "@/features/classes/components/ClassReceiveDialog
 import { applyForClassThunk, fetchClassFeedThunk } from "@/features/classes/store/classThunks";
 import {
   formatAvailabilitySlotsOneLine,
-  formatClassTutorPrefsSummary,
   formatDateTime,
   formatPrice,
   formatStudentGender,
+  formatTutorGenderPref,
+  formatTutorLevelPref,
 } from "@/features/classes/utils/classFormatters";
+
+const formatPersonalGender = (gender) => {
+  if (gender === "male") return "Nam";
+  if (gender === "female") return "Nữ";
+  return "Chưa cập nhật";
+};
+
+const formatPersonalLevel = (level) => {
+  if (level === "student") return "Sinh viên";
+  if (level === "teacher") return "Giáo viên";
+  return "Chưa xác định";
+};
 
 const PAGE_SIZE = 10;
 const NEW_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -39,9 +52,8 @@ const isNewPost = (createdAt) => {
 export default function ClassFeedPanel() {
   const dispatch = useDispatch();
   const { user } = useAuth();
-  const { feed, feedPagination, feedSubjects, feedNewCount, loadingFeed, applying } = useSelector(
-    (state) => state.classes
-  );
+  const { feed, feedPagination, feedSubjects, feedNewCount, feedPersonalization, loadingFeed, applying } =
+    useSelector((state) => state.classes);
 
   const [selectedSubject, setSelectedSubject] = useState("");
   const [page, setPage] = useState(1);
@@ -103,7 +115,28 @@ export default function ClassFeedPanel() {
       {feedNewCount > 0 && (
         <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
           <Sparkles className="h-4 w-4" />
-          {feedNewCount} bài đăng mới trong 24 giờ qua phù hợp với môn bạn dạy
+          {feedNewCount} bài đăng mới trong 24 giờ qua phù hợp với hồ sơ của bạn
+        </div>
+      )}
+
+      {/* Personalization summary: feed đã được lọc theo hồ sơ gia sư */}
+      {feedPersonalization && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <span className="font-medium text-slate-500">Đang lọc theo hồ sơ của bạn:</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700">
+            <UserRound className="h-3.5 w-3.5 text-emerald-600" />
+            Giới tính: {formatPersonalGender(feedPersonalization.gender)}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700">
+            <BookOpenText className="h-3.5 w-3.5 text-emerald-600" />
+            Trình độ: {formatPersonalLevel(feedPersonalization.level)}
+          </span>
+          {feedPersonalization.provinceName && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700">
+              <MapPin className="h-3.5 w-3.5 text-emerald-600" />
+              Khu vực: {feedPersonalization.provinceName}
+            </span>
+          )}
         </div>
       )}
 
@@ -199,7 +232,7 @@ export default function ClassFeedPanel() {
             key={item.id}
             className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-emerald-300 hover:shadow-md"
           >
-            <div className="flex items-start justify-between gap-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   {isNewPost(item.createdAt) && (
@@ -228,7 +261,7 @@ export default function ClassFeedPanel() {
                 </div>
               </div>
 
-              <div className="w-[200px] shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right">
+              <div className="w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:w-[200px]">
                 <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
                 <p className="mt-1 text-2xl font-bold leading-none text-emerald-700">
                   {formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}
@@ -267,7 +300,15 @@ export default function ClassFeedPanel() {
               </div>
               <div className="flex items-center gap-2 text-slate-600">
                 <UserRound className="h-4 w-4 text-emerald-600" />
-                <span className="line-clamp-1">{formatClassTutorPrefsSummary(item)}</span>
+                <span className="line-clamp-1">
+                  <span className="text-slate-400">Trình độ:</span> {formatTutorLevelPref(item.tutorLevelPref)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <UserRound className="h-4 w-4 text-emerald-600" />
+                <span className="line-clamp-1">
+                  <span className="text-slate-400">Giới tính:</span> {formatTutorGenderPref(item.tutorGenderPref)}
+                </span>
               </div>
             </div>
 

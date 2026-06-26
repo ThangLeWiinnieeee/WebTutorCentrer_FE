@@ -13,7 +13,7 @@ import lookupService from "@/features/tutors/services/lookupService";
 import { searchTutorsThunk, getTopTutorsThisMonthThunk } from "@/features/tutors/store/tutorThunks";
 
 const LIMIT = 10;
-const FILTER_KEYS = ["subject", "occupationStatus", "gender", "yearOfBirth", "province", "district"];
+const FILTER_KEYS = ["name", "subject", "occupationStatus", "gender", "yearOfBirth", "province", "district"];
 
 const readFilters = (params) => {
   const f = {};
@@ -138,6 +138,7 @@ export default function TutorListingPage() {
   // Chips trạng thái lọc đang áp dụng (đã resolve label)
   const activeChips = useMemo(() => {
     const chips = [];
+    if (filters.name) chips.push({ key: "name", label: `Tên: ${filters.name}` });
     if (filters.subject) chips.push({ key: "subject", label: `Môn: ${labelFor(lookups.subjects, filters.subject)}` });
     if (filters.occupationStatus)
       chips.push({ key: "occupationStatus", label: `Chuyên môn: ${labelFor(lookups.occupations, filters.occupationStatus)}` });
@@ -148,12 +149,13 @@ export default function TutorListingPage() {
     return chips;
   }, [filters, lookups, districts]);
 
-  // Tính lại vị trí kích hoạt animation sau khi danh sách (load bất đồng bộ) thay đổi
+  const hasActiveFilters = activeChips.length > 0;
+
+  // Tính lại vị trí animation khi danh sách (tải bất đồng bộ) thay đổi
   useEffect(() => {
     AOS.refresh();
   }, [loading, searchResults.length, topTutorsThisMonth?.length]);
 
-  const hasActiveFilters = activeChips.length > 0;
   const totalPages = Math.ceil(totalResults / LIMIT) || 1;
   const rangeStart = totalResults === 0 ? 0 : (page - 1) * LIMIT + 1;
   const rangeEnd = Math.min(page * LIMIT, totalResults);
@@ -189,7 +191,12 @@ export default function TutorListingPage() {
             </h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
               {topTutorsThisMonth.slice(0, 5).map((tutor, idx) => (
-                <Link key={tutor.id} to={`/tutors/${tutor.id}`} data-aos="fade-up" data-aos-delay={idx * 60}>
+                <Link
+                  key={tutor.id}
+                  to={`/tutors/${tutor.id}`}
+                  data-aos="fade-up"
+                  data-aos-delay={Math.min(idx, 4) * 60}
+                >
                   <TopTutorCard tutor={tutor} rank={idx + 1} />
                 </Link>
               ))}

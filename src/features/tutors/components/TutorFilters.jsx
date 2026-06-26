@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { ChevronDown, Filter, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Filter, Search, X } from "lucide-react";
 
 const SelectField = ({ label, value, onChange, disabled, placeholder, children }) => (
   <div>
@@ -38,6 +38,30 @@ export default function TutorFilters({
 
   const activeCount = useMemo(() => Object.values(filters).filter(Boolean).length, [filters]);
 
+  // Ô tìm theo tên dùng state cục bộ + debounce 400ms để tránh gọi API mỗi lần gõ phím.
+  const [nameInput, setNameInput] = useState(filters.name || "");
+
+  // Đồng bộ lại ô nhập khi filter tên đổi từ bên ngoài (xóa chip / xóa tất cả) —
+  // theo mẫu "điều chỉnh state khi prop đổi" của React (chỉnh ngay trong render, không qua effect).
+  const [prevFilterName, setPrevFilterName] = useState(filters.name || "");
+  if ((filters.name || "") !== prevFilterName) {
+    setPrevFilterName(filters.name || "");
+    setNameInput(filters.name || "");
+  }
+
+  // Áp dụng tìm theo tên sau khi ngừng gõ
+  useEffect(() => {
+    const trimmed = nameInput.trim();
+    if (trimmed === (filters.name || "")) return;
+    const timer = setTimeout(() => {
+      const next = { ...filters };
+      if (trimmed) next.name = trimmed;
+      else delete next.name;
+      onFilterChange(next);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [nameInput, filters, onFilterChange]);
+
   if (loading) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -71,6 +95,21 @@ export default function TutorFilters({
             <X className="h-3.5 w-3.5" /> Xóa tất cả
           </button>
         )}
+      </div>
+
+      {/* Tìm theo tên gia sư */}
+      <div className="mb-3">
+        <label className="mb-1.5 block text-xs font-semibold text-slate-600">Tên gia sư</label>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            placeholder="Tìm theo tên gia sư..."
+            className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">

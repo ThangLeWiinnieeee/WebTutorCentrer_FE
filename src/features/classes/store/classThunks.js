@@ -147,3 +147,29 @@ export const applyForClassThunk = createAsyncThunk(
     }
   }
 );
+
+// Người đăng lấy danh sách gia sư ứng tuyển một bài đăng của mình
+export const fetchApplicantsThunk = createAsyncThunk(
+  "classes/fetchApplicants",
+  async (classId, { rejectWithValue }) => {
+    try {
+      const res = await classService.getApplicants(classId);
+      return res.data.data; // { classItem, applicants }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không tải được danh sách gia sư ứng tuyển");
+    }
+  }
+);
+
+// Người đăng chọn 1 gia sư
+export const selectApplicantThunk = createAsyncThunk(
+  "classes/selectApplicant",
+  async ({ classId, applicationId }, { rejectWithValue }) => {
+    try {
+      const res = await classService.selectApplicant(classId, applicationId);
+      return res.data.data.application;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Không thể chọn gia sư");
+    }
+  }
+);

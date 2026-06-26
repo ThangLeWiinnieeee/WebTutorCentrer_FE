@@ -37,10 +37,12 @@ import ClassReceiveDialog from '@/features/classes/components/ClassReceiveDialog
 import SearchableSelect from '@/features/classes/components/SearchableSelect';
 import classService from '@/features/classes/services/classService';
 import { fetchClassesThunk, applyForClassThunk } from '@/features/classes/store/classThunks';
+import { getTutorProfileThunk } from '@/features/tutors/store/tutorThunks';
 import {
   formatAvailabilitySlotsOneLine,
-  formatClassTutorPrefsSummary,
   formatStudentGender,
+  formatTutorGenderPref,
+  formatTutorLevelPref,
 } from '@/features/classes/utils/classFormatters';
 import useAuth from '@/features/auth/hooks/useAuth';
 import locationService from '@/features/tutors/services/locationService';
@@ -51,6 +53,9 @@ const NewClassesPage = () => {
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
   const { list, pagination, loadingList, applying } = useSelector((state) => state.classes);
+  const tutorProfile = useSelector((state) => state.tutors.profile);
+  // Đã đăng ký làm gia sư (đang chờ duyệt hoặc đã duyệt) → ẩn lời mời "Trở thành gia sư đối tác"
+  const isRegisteredTutor = user?.role === "tutor" || Boolean(tutorProfile);
   const [filters, setFilters] = useState({ subject: "", provinceCode: "", districtCode: "" });
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -77,6 +82,14 @@ const NewClassesPage = () => {
       )
       .catch(() => startTransition(() => setSubjects([])));
   }, []);
+
+  // Kiểm tra người dùng đã có hồ sơ gia sư chưa để quyết định ẩn lời mời đăng ký.
+  // Bỏ qua nếu chưa đăng nhập hoặc đã là gia sư đã duyệt (role tutor) hoặc đã tải hồ sơ.
+  useEffect(() => {
+    if (isAuthenticated && user?.role !== "tutor" && !tutorProfile) {
+      dispatch(getTutorProfileThunk());
+    }
+  }, [isAuthenticated, user?.role, tutorProfile, dispatch]);
 
   useEffect(() => {
     locationService
@@ -137,18 +150,9 @@ const NewClassesPage = () => {
       .replace(',', '');
   };
 
-  const popularTags = [
-    'Toán',
-    'Tiếng Anh',
-    'Văn',
-    'Vật Lý',
-    'Đàn Piano',
-    'Luyện thi',
-    'Tiếng Việt Lớp 1',
-    'STEM',
-    'Yoga',
-    'IELTS',
-  ];
+  // Gợi ý nhanh: lấy thẳng từ danh sách môn của BE (đã sort theo order do admin định nghĩa),
+  // tránh hardcode khiến tag không khớp tên môn trong DB → lọc ra rỗng.
+  const popularTags = useMemo(() => subjects.slice(0, 10), [subjects]);
 
   const totalPages = pagination?.totalPages || 1;
   const totalItems = pagination?.totalItems || 0;
@@ -248,8 +252,8 @@ const NewClassesPage = () => {
   return (
     <div className="mx-auto max-w-[1360px] px-6 py-8">
       <div className="sticky top-16 z-40 mb-7 rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-md backdrop-blur-md ring-1 ring-white/60">
-        <div className="flex items-center gap-3">
-          <div className="relative min-w-[300px] flex-1">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
             <BookOpenText className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <SearchableSelect
               value={filters.subject || ALL_SUBJECTS_VALUE}
@@ -270,7 +274,7 @@ const NewClassesPage = () => {
             />
           </div>
 
-          <div className="relative min-w-[280px] flex-1">
+          <div className="relative min-w-0 flex-1">
             <MapPinned className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <SearchableSelect
               value={filters.provinceCode || ""}
@@ -291,20 +295,22 @@ const NewClassesPage = () => {
             />
           </div>
 
-          <Button className="h-11 min-w-[140px] rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700">
-            <Search className="mr-2 h-4 w-4" />
-            Tìm kiếm
-          </Button>
+          <div className="flex gap-3">
+            <Button className="h-11 flex-1 rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700 sm:flex-initial sm:min-w-[140px]">
+              <Search className="mr-2 h-4 w-4" />
+              Tìm kiếm
+            </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 rounded-xl border-slate-200 px-4 text-sm font-medium text-slate-600 hover:bg-slate-50"
-            onClick={() => setShowAdvancedFilters((prev) => !prev)}
-          >
-            <SlidersHorizontal className="mr-2 h-4 w-4" />
-            Bộ lọc
-          </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 shrink-0 rounded-xl border-slate-200 px-4 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              onClick={() => setShowAdvancedFilters((prev) => !prev)}
+            >
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
+              Bộ lọc
+            </Button>
+          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -372,8 +378,8 @@ const NewClassesPage = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-9 space-y-4">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="min-w-0 space-y-4 lg:col-span-9">
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
             <div>
               <h1 className="text-lg font-semibold text-slate-900">Lớp cần gia sư</h1>
@@ -398,17 +404,17 @@ const NewClassesPage = () => {
               className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
               <div className="animate-pulse">
-                <div className="mb-4 flex items-start justify-between gap-6">
+                <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                   <div className="flex-1">
                     <div className="h-7 w-3/4 rounded-md bg-slate-200" />
                     <div className="mt-3 h-4 w-1/3 rounded-md bg-slate-200" />
                   </div>
-                  <div className="h-28 w-[220px] rounded-xl bg-slate-200" />
+                  <div className="h-28 w-full rounded-xl bg-slate-200 sm:w-[220px]" />
                 </div>
 
                 <div className="mb-4 h-16 w-full rounded-xl bg-slate-200" />
 
-                <div className="mb-3 grid grid-cols-3 gap-3">
+                <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className="h-16 rounded-lg bg-slate-200" />
                   <div className="h-16 rounded-lg bg-slate-200" />
                   <div className="h-16 rounded-lg bg-slate-200" />
@@ -426,74 +432,52 @@ const NewClassesPage = () => {
 
           {!loadingList && list.map((item, idx) => (
             <article
-              key={item._id}
+              key={item.id || item._id}
               data-aos="fade-up"
               data-aos-delay={Math.min(idx, 4) * 60}
-              className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-slate-300 hover:shadow-md"
+              className="group relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-200 ease-out hover:border-slate-300 hover:shadow-md"
             >
-              <div className="flex items-start justify-between gap-6">
-                <div className="min-w-0">
-                  <h2 className="line-clamp-2 text-[22px] font-semibold leading-tight text-slate-900">
-                    {item.subject} - {item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}
-                  </h2>
-                  <div className="mt-2.5 flex flex-col gap-1 text-slate-500">
-                    <div className="flex items-center gap-2.5">
-                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
-                        Mã lớp {item.classCode}
-                      </span>
-                      <Link
-                        to={`/classes/${item._id || item.id}`}
-                        className="text-xs font-bold text-orange-600 hover:text-orange-700 hover:underline flex items-center gap-1"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        Xem thêm
-                      </Link>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                      <Clock3 className="h-3.5 w-3.5" />
-                      <span>Đăng ngày: {formatDateTime(item.createdAt)}</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <BookOpenText className="h-4 w-4 text-emerald-600" />
-                      <span className="text-sm text-slate-500">Học phí / buổi:</span>
-                      <strong className="text-lg font-bold leading-none text-emerald-600">
-                        {formatPrice(item.feePerSession)}đ
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="w-[220px] shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right">
-                  <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
-                  <p className="mt-1 text-3xl font-bold leading-none text-emerald-700">
-                    {formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}đ
-                  </p>
-                  <p className="mt-1 text-xs text-emerald-700/80">5% học phí tháng đầu</p>
-                  {user?.id && item.createdBy === user.id ? (
-                    <div className="mt-3 flex h-10 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
-                      Bài đăng của bạn
-                    </div>
-                  ) : (
-                    <Button
-                      type="button"
-                      className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
-                      onClick={() => handleReceiveClass(item)}
+              {/* Tiêu đề + meta. Trên desktop chừa chỗ cho ô phí nổi góc phải (sm:pr) */}
+              <div className="min-w-0 sm:pr-[244px]">
+                <h2 className="line-clamp-2 text-xl font-semibold leading-tight text-slate-900 sm:text-[22px]">
+                  {item.subject} - {item.summary || `Cần Gia Sư tại ${item.districtName || ''}, ${item.provinceName || ''}`}
+                </h2>
+                <div className="mt-2.5 flex flex-col gap-1 text-slate-500">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                      Mã lớp {item.classCode}
+                    </span>
+                    <Link
+                      to={`/classes/${item.id || item._id}`}
+                      className="text-xs font-bold text-orange-600 hover:text-orange-700 hover:underline flex items-center gap-1"
                     >
-                      Nhận lớp ngay
-                      <ArrowRight className="ml-1.5 h-4 w-4" />
-                    </Button>
-                  )}
+                      <Eye className="h-3.5 w-3.5" />
+                      Xem thêm
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <Clock3 className="h-3.5 w-3.5" />
+                    <span>Đăng ngày: {formatDateTime(item.createdAt)}</span>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <BookOpenText className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm text-slate-500">Học phí / buổi:</span>
+                    <strong className="text-lg font-bold leading-none text-emerald-600">
+                      {formatPrice(item.feePerSession)}đ
+                    </strong>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
+              {/* Mô tả: ẩn trên điện thoại cho gọn */}
+              <div className="mt-4 hidden rounded-xl border border-slate-100 bg-slate-50 p-4 sm:block">
                 <p className="line-clamp-2 text-sm leading-relaxed text-slate-700">
                   {item.description || "Chưa có mô tả chi tiết cho lớp học này."}
                 </p>
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
-                <div className="rounded-lg border border-slate-100 bg-white px-3 py-2.5 text-slate-700">
+              <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+                <div className="hidden rounded-lg border border-slate-100 bg-white px-3 py-2.5 text-slate-700 sm:block">
                   <p className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <Users className="h-4 w-4 text-emerald-600" />
                     Học viên
@@ -503,7 +487,7 @@ const NewClassesPage = () => {
                     {item.studentGender ? ` (${formatStudentGender(item.studentGender)})` : ""}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-100 bg-white px-3 py-2.5 text-slate-700">
+                <div className="hidden rounded-lg border border-slate-100 bg-white px-3 py-2.5 text-slate-700 sm:block">
                   <p className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <CalendarDays className="h-4 w-4 text-emerald-600" />
                     Lịch học
@@ -530,7 +514,13 @@ const NewClassesPage = () => {
                   <div className="flex items-center gap-2">
                     <UserRound className="h-4 w-4 shrink-0 text-slate-400" />
                     <span>
-                      <strong className="font-semibold text-slate-700">Yêu cầu gia sư:</strong> {formatClassTutorPrefsSummary(item)}
+                      <strong className="font-semibold text-slate-700">Yêu cầu trình độ:</strong> {formatTutorLevelPref(item.tutorLevelPref)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <UserRound className="h-4 w-4 shrink-0 text-slate-400" />
+                    <span>
+                      <strong className="font-semibold text-slate-700">Yêu cầu giới tính:</strong> {formatTutorGenderPref(item.tutorGenderPref)}
                     </span>
                   </div>
                 </div>
@@ -541,6 +531,29 @@ const NewClassesPage = () => {
                     {formatAvailabilitySlotsOneLine(item.availabilitySlots)}
                   </p>
                 </div>
+              </div>
+
+              {/* Phí nhận lớp + CTA: desktop nổi góc phải, điện thoại đặt xuống cuối bài */}
+              <div className="mt-4 w-full shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-right sm:absolute sm:right-5 sm:top-5 sm:mt-0 sm:w-[220px]">
+                <p className="text-xs uppercase tracking-wide text-emerald-700">Phí nhận lớp</p>
+                <p className="mt-1 text-3xl font-bold leading-none text-emerald-700">
+                  {formatPrice(Math.round((item.feePerMonth || 0) * 0.05))}đ
+                </p>
+                <p className="mt-1 text-xs text-emerald-700/80">5% học phí tháng đầu</p>
+                {user?.id && item.createdBy === user.id ? (
+                  <div className="mt-3 flex h-10 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500">
+                    Bài đăng của bạn
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    className="mt-3 h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
+                    onClick={() => handleReceiveClass(item)}
+                  >
+                    Nhận lớp ngay
+                    <ArrowRight className="ml-1.5 h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </article>
           ))}
@@ -596,21 +609,23 @@ const NewClassesPage = () => {
           )}
         </div>
 
-        <aside className="col-span-3 space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-              <Sparkles className="h-5 w-5" />
+        <aside className="hidden space-y-4 lg:col-span-3 lg:block">
+          {!isRegisteredTutor && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <h3 className="text-base font-semibold text-slate-900">Trở thành gia sư đối tác</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                Tham gia mạng lưới gia sư chuyên nghiệp để nhận lớp phù hợp theo môn và khu vực của bạn.
+              </p>
+              <Link to="/register-tutor">
+                <Button className="mt-4 h-10 w-full rounded-lg bg-rose-600 text-sm font-semibold text-white hover:bg-rose-700">
+                  Đăng ký làm gia sư
+                </Button>
+              </Link>
             </div>
-            <h3 className="text-base font-semibold text-slate-900">Trở thành gia sư đối tác</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              Tham gia mạng lưới gia sư chuyên nghiệp để nhận lớp phù hợp theo môn và khu vực của bạn.
-            </p>
-            <Link to="/register-tutor">
-              <Button className="mt-4 h-10 w-full rounded-lg bg-rose-600 text-sm font-semibold text-white hover:bg-rose-700">
-                Đăng ký làm gia sư
-              </Button>
-            </Link>
-          </div>
+          )}
 
           <div className="rounded-2xl border border-slate-200 bg-slate-900 p-5 text-white shadow-sm">
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-300">

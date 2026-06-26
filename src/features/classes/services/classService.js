@@ -14,6 +14,9 @@ const classService = {
   feed: (params) => axiosInstance.get(API_ENDPOINTS.CLASSES.FEED, { params }),
   myPosts: (params) => axiosInstance.get(API_ENDPOINTS.CLASSES.MY_POSTS, { params }),
   apply: (id) => axiosInstance.post(API_ENDPOINTS.CLASSES.APPLY(id)),
+  getApplicants: (id) => axiosInstance.get(API_ENDPOINTS.CLASSES.APPLICANTS(id)),
+  selectApplicant: (id, applicationId) =>
+    axiosInstance.post(API_ENDPOINTS.CLASSES.SELECT_APPLICANT(id, applicationId)),
   cancelApplication: (id, reason) =>
     axiosInstance.post(API_ENDPOINTS.CLASSES.CANCEL_APPLICATION(id), { reason }),
   completeClass: (id) => axiosInstance.post(API_ENDPOINTS.CLASSES.COMPLETE(id)),
