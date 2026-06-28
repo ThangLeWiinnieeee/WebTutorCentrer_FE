@@ -1,15 +1,15 @@
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, GraduationCap, BookOpen, MapPin, User2, CalendarClock } from "lucide-react";
+import { Loader2, GraduationCap, BookOpen, MapPin, User2, CalendarClock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { tutorSchema } from "@/features/tutors/schemas/tutorSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
 import { registerTutorThunk } from "@/features/tutors/store/tutorThunks";
-import {
-  SUBJECTS,
-  OCCUPATION_STATUS_OPTIONS,
-} from "@/features/tutors/constants";
+import { OCCUPATION_STATUS_OPTIONS } from "@/features/tutors/constants";
+import useSubjects from "@/hooks/useSubjects";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import MultiCheckbox from "./MultiCheckbox";
 import AvailabilityPicker from "./AvailabilityPicker";
 import AreaPicker from "./AreaPicker";
+import SchoolPicker from "./SchoolPicker";
+import DocumentUploadField from "./DocumentUploadField";
+import DocumentMultiUpload from "./DocumentMultiUpload";
 
 const SectionTitle = ({ icon: Icon, title }) => (
   <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
@@ -31,6 +34,7 @@ const SectionTitle = ({ icon: Icon, title }) => (
 const TutorRegistrationForm = ({ onSuccess }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.tutors);
+  const { subjects: subjectOptions } = useSubjects();
 
   const form = useForm({
     resolver: zodResolver(tutorSchema),
@@ -44,14 +48,41 @@ const TutorRegistrationForm = ({ onSuccess }) => {
       graduationYear: null,
       bio: "",
       availability: [],
+      cccdFrontImage: "",
+      cccdBackImage: "",
+      studentCardFrontImage: "",
+      studentCardBackImage: "",
+      certificateImages: [],
     },
   });
 
   const occupationStatus = form.watch("occupationStatus");
 
+  // Hiển thị theo tình trạng nghề nghiệp:
+  // - sinh viên → chỉ thẻ sinh viên (bắt buộc)
+  // - đã tốt nghiệp / giáo viên → chỉ bằng cấp (tối thiểu 1)
+  // - chưa chọn → hiện cả hai
+  const showStudentCard = occupationStatus === "" || occupationStatus === "student";
+  const showCertificates =
+    occupationStatus === "" || occupationStatus === "graduated" || occupationStatus === "teacher";
+
+  // Khi đổi tình trạng nghề nghiệp, bỏ loại giấy tờ không còn phù hợp (không lưu phần thừa).
+  useEffect(() => {
+    if (occupationStatus === "student") {
+      form.setValue("certificateImages", []);
+    } else if (occupationStatus === "graduated" || occupationStatus === "teacher") {
+      form.setValue("studentCardFrontImage", "");
+      form.setValue("studentCardBackImage", "");
+    }
+  }, [occupationStatus, form]);
+
   const onSubmit = async (data) => {
     if (data.occupationStatus === "student") {
       data.graduationYear = null;
+      data.certificateImages = [];
+    } else {
+      data.studentCardFrontImage = "";
+      data.studentCardBackImage = "";
     }
     const result = await dispatch(registerTutorThunk(data));
     if (!result.error) {
@@ -66,7 +97,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit, scrollToFirstError)} className="space-y-8">
         {/* === PHẦN 1: THÔNG TIN CÁ NHÂN === */}
 
         {/* Contact */}
@@ -148,11 +179,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
                   <FormItem className="sm:col-span-2">
                     <FormLabel>Trường đã / đang học <span className="text-rose-500">*</span></FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="VD: Đại học Bách Khoa Hà Nội"
-                        className="focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-slate-400"
-                        {...field}
-                      />
+                      <SchoolPicker value={field.value} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -217,6 +244,95 @@ const TutorRegistrationForm = ({ onSuccess }) => {
           />
         </div>
 
+        {/* Verification documents */}
+        <div>
+          <SectionTitle icon={ShieldCheck} title="Hình ảnh chứng thực" />
+          <p className="-mt-2 mb-4 text-xs text-slate-500">
+            Tải ảnh CCCD/CMND rõ nét để xác thực danh tính. Thông tin này chỉ dùng cho việc xét
+            duyệt và được bảo mật.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="cccdFrontImage"
+              render={({ field, fieldState }) => (
+                <DocumentUploadField
+                  label="CCCD mặt trước"
+                  required
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="cccdBackImage"
+              render={({ field, fieldState }) => (
+                <DocumentUploadField
+                  label="CCCD mặt sau"
+                  required
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+          </div>
+
+          {showStudentCard && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="studentCardFrontImage"
+                render={({ field, fieldState }) => (
+                  <DocumentUploadField
+                    label="Thẻ sinh viên mặt trước"
+                    required={occupationStatus === "student"}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="studentCardBackImage"
+                render={({ field, fieldState }) => (
+                  <DocumentUploadField
+                    label="Thẻ sinh viên mặt sau"
+                    required={occupationStatus === "student"}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+            </div>
+          )}
+
+          {showCertificates && (
+            <div className="mt-4">
+              <FormField
+                control={form.control}
+                name="certificateImages"
+                render={({ field, fieldState }) => (
+                  <DocumentMultiUpload
+                    label="Bằng cấp"
+                    hint="Hãy gửi ảnh bằng cấp của môn bạn dạy vào đây (Bạn có thể gửi tối đa 5 ảnh)"
+                    required={occupationStatus === "graduated" || occupationStatus === "teacher"}
+                    max={5}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+            </div>
+          )}
+        </div>
+
         {/* === PHẦN 2: THÔNG TIN GIẢNG DẠY === */}
 
         {/* Subjects */}
@@ -229,7 +345,7 @@ const TutorRegistrationForm = ({ onSuccess }) => {
               <FormItem>
                 <FormLabel>Chọn môn bạn có thể dạy <span className="text-rose-500">*</span></FormLabel>
                 <MultiCheckbox
-                  options={SUBJECTS}
+                  options={subjectOptions}
                   value={field.value}
                   onChange={field.onChange}
                   columns={3}

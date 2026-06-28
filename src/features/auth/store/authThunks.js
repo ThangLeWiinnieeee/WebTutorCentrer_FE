@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import authService from "@/features/auth/services/authService";
 import tokenStorage from "@/utils/tokenStorage";
+import { clearClassRequestFormDraft } from "@/features/classes/utils/classRequestFormDraftStorage";
 
 export const registerThunk = createAsyncThunk(
   "auth/register",
@@ -17,6 +18,10 @@ export const registerThunk = createAsyncThunk(
 export const googleLoginThunk = createAsyncThunk(
   "auth/googleLogin",
   async (credential, { rejectWithValue }) => {
+    if (!credential) {
+      return rejectWithValue("Không nhận được mã xác thực Google");
+    }
+
     try {
       const res = await authService.googleLogin({ credential });
       const { accessToken, user } = res.data.data;
@@ -48,8 +53,11 @@ export const logoutThunk = createAsyncThunk(
     try {
       await authService.logout();
       tokenStorage.remove();
+      // Đăng xuất thì xóa luôn nháp form "tìm gia sư" đang lưu trong localStorage
+      clearClassRequestFormDraft();
     } catch (err) {
       tokenStorage.remove();
+      clearClassRequestFormDraft();
       return rejectWithValue(err.response?.data?.message || "Đăng xuất thất bại");
     }
   }
@@ -75,6 +83,42 @@ export const resendOtpThunk = createAsyncThunk(
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Gửi lại OTP thất bại");
+    }
+  }
+);
+
+export const forgotPasswordThunk = createAsyncThunk(
+  "auth/forgotPassword",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await authService.forgotPassword(data);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Gửi OTP khôi phục mật khẩu thất bại");
+    }
+  }
+);
+
+export const verifyForgotPasswordOtpThunk = createAsyncThunk(
+  "auth/verifyForgotPasswordOtp",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await authService.verifyForgotPasswordOtp(data);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Xác thực OTP khôi phục mật khẩu thất bại");
+    }
+  }
+);
+
+export const resetPasswordThunk = createAsyncThunk(
+  "auth/resetPassword",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await authService.resetPassword(data);
+      return res.data?.data || null;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Đặt lại mật khẩu thất bại");
     }
   }
 );

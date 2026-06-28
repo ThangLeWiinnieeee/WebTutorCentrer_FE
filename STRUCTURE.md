@@ -11,7 +11,7 @@ WebTutorCenter_FE/
 │   ├── main.jsx                      # Entry React: GoogleOAuthProvider, Redux Provider
 │   ├── index.css                     # Tailwind v4, shadcn theme vars, global focus/cursor CSS
 │   ├── app/
-│   │   └── store.js                  # reducers: auth, tutors, admin, notifications
+│   │   └── store.js                  # reducers: auth, tutors, admin, notifications, classes
 │   ├── admin/
 │   │   ├── index.js                  # Barrel export admin
 │   │   ├── components/
@@ -20,16 +20,23 @@ WebTutorCenter_FE/
 │   │   │   └── AdminLayout.jsx       # Layout admin routes
 │   │   ├── pages/
 │   │   │   ├── AdminDashboardPage.jsx
+│   │   │   ├── AdminUsersPage.jsx    # Quản lý người dùng
 │   │   │   └── TutorApprovalPage.jsx
+│   │   ├── schemas/
+│   │   │   └── adminUserSchema.js
 │   │   ├── services/
-│   │   │   └── adminService.js       # API admin tutor approval
+│   │   │   └── adminService.js       # API admin tutor approval + user management
 │   │   └── store/
 │   │       ├── adminSlice.js
 │   │       └── adminThunks.js
 │   ├── components/
+│   │   ├── home/
+│   │   │   └── IntroSections.jsx     # Sections giới thiệu trên trang chủ
 │   │   ├── shared/
+│   │   │   ├── FloatingContactBar.jsx
 │   │   │   ├── GuestRoute.jsx
 │   │   │   ├── Header.jsx            # Header + profile + NotificationBell + tutor link
+│   │   │   ├── Pagination.jsx        # Pagination dùng chung
 │   │   │   └── ProtectedRoute.jsx
 │   │   └── ui/
 │   │       ├── button.jsx
@@ -39,13 +46,15 @@ WebTutorCenter_FE/
 │   │       ├── label.jsx
 │   │       └── select.jsx
 │   ├── constants/
-│   │   └── apiEndpoints.js           # AUTH, TUTORS, ADMIN, LOCATIONS, NOTIFICATIONS
+│   │   └── apiEndpoints.js           # AUTH, TUTORS, ADMIN, LOCATIONS, NOTIFICATIONS, LOOKUPS, CLASSES
 │   ├── features/
 │   │   ├── auth/
 │   │   │   ├── index.js
 │   │   │   ├── components/
 │   │   │   │   ├── AuthBootstrap.jsx # Restore session + fetch notifications khi user đổi
 │   │   │   │   ├── AuthLeftPanel.jsx
+│   │   │   │   ├── ForgotPasswordForm.jsx
+│   │   │   │   ├── ResetPasswordForm.jsx
 │   │   │   │   ├── login/
 │   │   │   │   │   └── LoginForm.jsx
 │   │   │   │   └── register/
@@ -68,6 +77,27 @@ WebTutorCenter_FE/
 │   │   │   └── store/
 │   │   │       ├── authSlice.js
 │   │   │       └── authThunks.js
+│   │   ├── classes/
+│   │   │   ├── index.js
+│   │   │   ├── components/
+│   │   │   │   ├── ClassReceiveDialog.jsx
+│   │   │   │   ├── SearchableSelect.jsx
+│   │   │   │   └── WeeklyHourGrid.jsx
+│   │   │   ├── pages/
+│   │   │   │   ├── FindTutorRequestPage.jsx  # Tìm gia sư theo yêu cầu lớp học
+│   │   │   │   ├── NewClassDetailPage.jsx
+│   │   │   │   └── NewClassesPage.jsx        # Danh sách lớp mới
+│   │   │   ├── schemas/
+│   │   │   │   ├── classRequestSchema.js
+│   │   │   │   └── classSchema.js
+│   │   │   ├── services/
+│   │   │   │   └── classService.js
+│   │   │   ├── store/
+│   │   │   │   ├── classSlice.js
+│   │   │   │   └── classThunks.js
+│   │   │   └── utils/
+│   │   │       ├── classFormatters.js
+│   │   │       └── classRequestFormDraftStorage.js
 │   │   ├── notifications/
 │   │   │   ├── components/
 │   │   │   │   └── NotificationBell.jsx
@@ -101,14 +131,26 @@ WebTutorCenter_FE/
 │   │       ├── components/
 │   │       │   ├── AreaPicker.jsx    # Province/district picker via backend locations API
 │   │       │   ├── AvailabilityPicker.jsx
+│   │       │   ├── HeroSearchBar.jsx
 │   │       │   ├── MultiCheckbox.jsx
+│   │       │   ├── SchoolPicker.jsx
+│   │       │   ├── TopThisMonthTutors.jsx
+│   │       │   ├── TopTutorCard.jsx
+│   │       │   ├── TutorCard.jsx
+│   │       │   ├── TutorFilters.jsx
+│   │       │   ├── TutorPagination.jsx
 │   │       │   └── TutorRegistrationForm.jsx
+│   │       ├── constants/
+│   │       │   └── introSections.js
 │   │       ├── pages/
-│   │       │   └── RegisterTutorPage.jsx
+│   │       │   ├── RegisterTutorPage.jsx
+│   │       │   ├── TutorDetailPage.jsx
+│   │       │   └── TutorListingPage.jsx
 │   │       ├── schemas/
 │   │       │   └── tutorSchema.js
 │   │       ├── services/
 │   │       │   ├── locationService.js
+│   │       │   ├── lookupService.js
 │   │       │   └── tutorService.js
 │   │       └── store/
 │   │           ├── tutorSlice.js
@@ -126,6 +168,7 @@ WebTutorCenter_FE/
 │   │   └── axiosInstance.js         # baseURL, Bearer, refresh token, toast handling
 │   └── utils/
 │       └── tokenStorage.js
+├── eslint.config.js
 ├── package.json
 ├── vite.config.js
 └── STRUCTURE.md
@@ -139,8 +182,9 @@ WebTutorCenter_FE/
 |---|---|---|
 | `auth` | `features/auth` | User session, token, profile state |
 | `tutors` | `features/tutors` | Hồ sơ/đăng ký gia sư của user |
-| `admin` | `admin` | Danh sách hồ sơ gia sư pending và action approve/reject |
+| `admin` | `admin` | Danh sách hồ sơ gia sư pending và action approve/reject + quản lý user |
 | `notifications` | `features/notifications` | Thông báo lấy từ backend DB theo userId |
+| `classes` | `features/classes` | Danh sách lớp học, yêu cầu tìm gia sư |
 
 ## Routes
 
@@ -153,22 +197,30 @@ WebTutorCenter_FE/
 | `/forgot-password` | `GuestRoute` + `AuthLayout` | `ForgotPasswordPage` |
 | `/verify-forgot-password-otp` | `GuestRoute` + `AuthLayout` | `VerifyForgotPasswordOtpPage` |
 | `/reset-password` | `GuestRoute` + `AuthLayout` | `ResetPasswordPage` |
+| `/` | `MainLayout` (public) | `HomePage` |
+| `/register-tutor` | `MainLayout` (public) | `RegisterTutorPage` |
+| `/tutors` | `MainLayout` (public) | `TutorListingPage` |
+| `/tim-gia-su` | `MainLayout` (public) | `FindTutorRequestPage` |
+| `/tim-gia-su/:id` | `MainLayout` (public) | `TutorDetailPage` |
+| `/lop-moi` | `MainLayout` (public) | `NewClassesPage` |
+| `/lop-moi/:id` | `MainLayout` (public) | `NewClassDetailPage` |
 | `/complete-profile` | `ProtectedRoute skipProfileCheck` | `CompleteProfilePage` |
-| `/` | `ProtectedRoute` + `MainLayout` | `HomePage` |
 | `/profile` | `ProtectedRoute` + `MainLayout` | `ProfilePage` |
-| `/register-tutor` | `ProtectedRoute` + `MainLayout` | `RegisterTutorPage` |
 | `/admin` | `AdminLayout` | `AdminDashboardPage` |
+| `/admin/users` | `AdminLayout` | `AdminUsersPage` |
 | `/admin/tutors` | `AdminLayout` | `TutorApprovalPage` |
 
 ## API endpoints
 
 `src/constants/apiEndpoints.js` gom các endpoint tương đối:
 
-- `AUTH`: register, login, logout, refresh token, profile, avatar, forgot/reset password.
-- `TUTORS`: register tutor, get tutor profile.
-- `ADMIN`: pending tutors, approve tutor, reject tutor.
-- `LOCATIONS`: provinces, districts by province.
+- `AUTH`: register, verify-otp, resend-otp, google-login, login, logout, refresh token, forgot/reset password, user-info, update-profile, upload-avatar.
+- `TUTORS`: register, get profile, active, top, top-this-month, new, search.
+- `ADMIN`: dashboard-stats, pending tutors, approve/reject tutor, users CRUD, user status.
+- `LOCATIONS`: provinces, districts by province, schools.
 - `NOTIFICATIONS`: list, mark read, mark all read.
+- `LOOKUPS`: all, by type, districts by province.
+- `CLASSES`: quote, create, list, subjects, pricing-config, detail, mine.
 
 ## Luồng chính
 
@@ -221,6 +273,17 @@ NotificationBell
 ```
 
 Thông báo được lưu trong backend DB theo `userId`. FE không dùng localStorage cho notification. Khi người dùng đánh dấu đã đọc, backend set `readAt`; MongoDB TTL tự xóa sau 7 ngày.
+
+### Lớp học
+
+```text
+NewClassesPage / FindTutorRequestPage
+  -> classThunks
+  -> classService
+  -> API_ENDPOINTS.CLASSES.*
+```
+
+`classRequestFormDraftStorage` lưu draft form yêu cầu tìm gia sư vào localStorage để không mất dữ liệu khi user navigate đi.
 
 ## Quy ước feature
 

@@ -1,8 +1,31 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { registerTutorThunk, getTutorProfileThunk } from "./tutorThunks";
+import {
+  registerTutorThunk,
+  getTutorProfileThunk,
+  getTopTutorsThunk,
+  getTopTutorsThisMonthThunk,
+  getNewTutorsThunk,
+  searchTutorsThunk,
+  fetchMyProfileChangeRequestThunk,
+  requestProfileChangeThunk,
+} from "./tutorThunks";
 
 const initialState = {
+  // Profile
   profile: null,
+  profileChangeRequest: null, // yêu cầu đổi hồ sơ đang chờ duyệt (null nếu không có)
+  submittingProfileChange: false,
+
+  // Danh sách
+  topTutors: [],
+  topTutorsThisMonth: [],
+  newTutors: [],
+  searchResults: [],
+  totalResults: 0,
+  currentPage: 1,
+  
+  // Filter & state
+  filters: {},
   loading: false,
   error: null,
   registered: false,
@@ -18,8 +41,17 @@ const tutorSlice = createSlice({
       state.error = null;
       state.registered = false;
     },
+    setFilters: (state, action) => {
+      state.filters = action.payload;
+      state.currentPage = 1;
+    },
+    clearFilters: (state) => {
+      state.filters = {};
+      state.currentPage = 1;
+    },
   },
   extraReducers: (builder) => {
+    // Register
     builder
       .addCase(registerTutorThunk.pending, (state) => {
         state.loading = true;
@@ -35,6 +67,7 @@ const tutorSlice = createSlice({
         state.error = action.payload;
       });
 
+    // Get Profile
     builder
       .addCase(getTutorProfileThunk.pending, (state) => {
         state.loading = true;
@@ -48,8 +81,88 @@ const tutorSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
+
+    // Get Top Tutors
+    builder
+      .addCase(getTopTutorsThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTopTutorsThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.topTutors = action.payload;
+      })
+      .addCase(getTopTutorsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Get Top Tutors This Month
+    builder
+      .addCase(getTopTutorsThisMonthThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTopTutorsThisMonthThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.topTutorsThisMonth = action.payload;
+      })
+      .addCase(getTopTutorsThisMonthThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Get New Tutors
+    builder
+      .addCase(getNewTutorsThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getNewTutorsThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.newTutors = action.payload;
+      })
+      .addCase(getNewTutorsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Profile change request (gia sư đổi hồ sơ)
+    builder
+      .addCase(fetchMyProfileChangeRequestThunk.fulfilled, (state, action) => {
+        state.profileChangeRequest = action.payload;
+      })
+      .addCase(requestProfileChangeThunk.pending, (state) => {
+        state.submittingProfileChange = true;
+        state.error = null;
+      })
+      .addCase(requestProfileChangeThunk.fulfilled, (state, action) => {
+        state.submittingProfileChange = false;
+        state.profileChangeRequest = action.payload;
+      })
+      .addCase(requestProfileChangeThunk.rejected, (state, action) => {
+        state.submittingProfileChange = false;
+        state.error = action.payload;
+      });
+
+    // Search Tutors
+    builder
+      .addCase(searchTutorsThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(searchTutorsThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.searchResults = action.payload.tutors || [];
+        state.totalResults = action.payload.total || 0;
+        state.currentPage = action.payload.page || 1;
+      })
+      .addCase(searchTutorsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
-export const { clearTutorState } = tutorSlice.actions;
+export const { clearTutorState, setFilters, clearFilters } = tutorSlice.actions;
 export default tutorSlice.reducer;

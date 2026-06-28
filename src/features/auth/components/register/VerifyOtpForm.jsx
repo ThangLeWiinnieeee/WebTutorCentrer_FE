@@ -1,27 +1,38 @@
 import { useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, GraduationCap, Mail } from "lucide-react";
 
 import { verifyOtpSchema } from "@/features/auth/schemas/authSchema";
+import { scrollToFirstError } from "@/lib/formErrors";
 import { Button } from "@/components/ui/button";
 
 const OTP_LENGTH = 6;
 
-const VerifyOtpForm = ({ email, onSubmit, onResend, resendCooldown, serverError }) => {
+const VerifyOtpForm = ({
+  email,
+  onSubmit,
+  onResend,
+  resendCooldown,
+  serverError,
+  title = "Xác thực email",
+  description,
+  submitLabel = "Xác nhận",
+  submittingLabel = "Đang xác thực...",
+}) => {
   const inputRefs = useRef([]);
 
   const {
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { isSubmitting },
   } = useForm({
     resolver: zodResolver(verifyOtpSchema),
     defaultValues: { otp: "" },
   });
 
-  const otpValue = watch("otp") || "";
+  const otpValue = useWatch({ control, name: "otp" }) || "";
 
   const handleOtpChange = (index, char) => {
     const digits = char.replace(/\D/g, "").slice(0, 1);
@@ -58,10 +69,10 @@ const VerifyOtpForm = ({ email, onSubmit, onResend, resendCooldown, serverError 
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-12">
-      <div className="w-full max-w-[400px] space-y-8">
+    <div className="flex flex-1 items-center justify-center bg-white px-6 py-12 sm:px-12">
+      <div className="w-full max-w-[400px]">
         {/* Mobile logo */}
-        <div className="flex items-center gap-2 lg:hidden">
+        <div data-aos="fade-up" className="mb-10 flex items-center gap-2 lg:hidden">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1e3a5f]">
             <GraduationCap className="h-5 w-5 text-white" />
           </div>
@@ -69,30 +80,46 @@ const VerifyOtpForm = ({ email, onSubmit, onResend, resendCooldown, serverError 
         </div>
 
         {/* Icon + Heading */}
-        <div className="space-y-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 border border-blue-100">
-            <Mail className="h-7 w-7 text-[#1e3a5f]" />
+        <div className="space-y-4">
+          <div
+            data-aos="zoom-in"
+            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-50 to-blue-100 text-[#1e3a5f] shadow-sm ring-1 ring-blue-100"
+          >
+            <Mail className="h-7 w-7" />
           </div>
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-slate-800">Xác thực email</h2>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              Chúng tôi đã gửi mã OTP gồm 6 chữ số đến{" "}
-              <span className="font-semibold text-slate-700">{email}</span>
+          <div data-aos="fade-up" data-aos-delay="100" className="space-y-2">
+            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">{title}</h2>
+            <p className="text-[15px] leading-relaxed text-slate-500">
+              {description || (
+                <>
+                  Chúng tôi đã gửi mã OTP gồm 6 chữ số đến{" "}
+                  <span className="font-semibold text-slate-700">{email}</span>
+                </>
+              )}
             </p>
           </div>
         </div>
 
         {/* Server error */}
         {serverError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div
+            data-aos="fade-up"
+            className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+          >
             {serverError}
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit, scrollToFirstError)}
+          noValidate
+          data-aos="fade-up"
+          data-aos-delay="150"
+          className="mt-8 space-y-6"
+        >
           {/* OTP boxes */}
-          <div className="flex gap-2 justify-between" onPaste={handlePaste}>
+          <div className="flex justify-between gap-2" onPaste={handlePaste}>
             {Array.from({ length: OTP_LENGTH }).map((_, i) => (
               <input
                 key={i}
@@ -103,10 +130,11 @@ const VerifyOtpForm = ({ email, onSubmit, onResend, resendCooldown, serverError 
                 value={otpValue[i] || ""}
                 onChange={(e) => handleOtpChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
-                className={`h-13 w-full max-w-[52px] rounded-lg border text-center text-xl font-bold text-slate-800 bg-white outline-none transition-all focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20 ${
-                  otpValue[i] ? "border-[#1e3a5f]" : "border-slate-200"
+                className={`h-14 w-full max-w-[54px] rounded-xl border text-center text-xl font-bold text-slate-800 outline-none transition-all duration-150 focus:scale-105 focus:border-[#1e3a5f] focus:bg-white ${
+                  otpValue[i]
+                    ? "border-[#1e3a5f] bg-white"
+                    : "border-transparent bg-slate-100/70"
                 }`}
-                style={{ height: "52px" }}
               />
             ))}
           </div>
@@ -115,32 +143,32 @@ const VerifyOtpForm = ({ email, onSubmit, onResend, resendCooldown, serverError 
           <Button
             type="submit"
             disabled={isSubmitting || otpValue.length < OTP_LENGTH}
-            className="w-full h-11 bg-[#1e3a5f] hover:bg-[#16304f] text-white font-semibold text-sm rounded-lg transition-colors disabled:opacity-50"
+            className="h-12 w-full rounded-xl bg-linear-to-r from-[#1e3a5f] to-[#2c5286] text-[15px] font-semibold text-white shadow-lg shadow-[#1e3a5f]/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-[#16304f] hover:to-[#244269] hover:shadow-xl hover:shadow-[#1e3a5f]/30 active:translate-y-0 active:scale-[0.99] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Đang xác thực...
+                {submittingLabel}
               </>
             ) : (
-              "Xác nhận"
+              submitLabel
             )}
           </Button>
         </form>
 
         {/* Resend */}
-        <p className="text-center text-sm text-slate-500">
+        <p data-aos="fade-up" data-aos-delay="200" className="mt-8 text-center text-sm text-slate-500">
           Không nhận được mã?{" "}
           {resendCooldown > 0 ? (
             <span className="text-slate-400">
               Gửi lại sau{" "}
-              <span className="font-semibold text-slate-600 tabular-nums">{resendCooldown}s</span>
+              <span className="font-semibold tabular-nums text-slate-600">{resendCooldown}s</span>
             </span>
           ) : (
             <button
               type="button"
               onClick={onResend}
-              className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+              className="font-semibold text-blue-600 transition-colors hover:text-blue-700 hover:underline"
             >
               Gửi lại OTP
             </button>

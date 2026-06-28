@@ -6,8 +6,20 @@ import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import GuestRoute from "@/components/shared/GuestRoute";
 import HomePage from "@/pages/HomePage";
 import { ProfilePage, CompleteProfilePage } from "@/features/profile";
-import { RegisterTutorPage } from "@/features/tutors";
-import { AdminLayout, TutorApprovalPage, AdminDashboardPage } from "@/admin";
+import { RegisterTutorPage, TutorListingPage, TutorDetailPage } from "@/features/tutors";
+import {
+  FindTutorRequestPage,
+  NewClassesPage,
+  NewClassDetailPage,
+  MyClassesPage,
+  MyPostsPage,
+  ClassInvitationsPage,
+} from "@/features/classes";
+import NotificationsPage from "@/features/notifications/pages/NotificationsPage";
+import MyVouchersPage from "@/features/vouchers/pages/MyVouchersPage";
+import { MyReviewsPage } from "@/features/reviews";
+import { AdminLayout, TutorApprovalPage, AdminDashboardPage, AdminUsersPage, ClassApplicationsPage, AdminClassesPage, AdminPromosPage, AdminSubjectsPage, AdminTrashPage, AdminSettingsPage, AdminProfileChangesPage, AdminApplicationCancellationsPage, AdminReviewsPage } from "@/admin";
+import { AdminMessagesPage } from "@/features/chat";
 
 import {
   LoginPage,
@@ -39,6 +51,20 @@ const router = createBrowserRouter([
     ],
   },
 
+  // Public routes
+  {
+    element: <MainLayout />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/register-tutor", element: <RegisterTutorPage /> },
+      { path: "/tutors", element: <TutorListingPage /> },
+      { path: "/tutors/:id", element: <TutorDetailPage /> },
+      { path: "/find-tutor", element: <FindTutorRequestPage /> },
+      { path: "/classes", element: <NewClassesPage /> },
+      { path: "/classes/:id", element: <NewClassDetailPage /> },
+    ],
+  },
+
   // Protected routes (cần đăng nhập, bỏ qua kiểm tra profile hoàn chỉnh)
   {
     element: <ProtectedRoute skipProfileCheck />,
@@ -54,9 +80,26 @@ const router = createBrowserRouter([
       {
         element: <MainLayout />,
         children: [
-          { path: "/", element: <HomePage /> },
           { path: "/profile", element: <ProfilePage /> },
-          { path: "/register-tutor", element: <RegisterTutorPage /> },
+          { path: "/notifications", element: <NotificationsPage /> },
+          { path: "/my-posts", element: <MyPostsPage /> },
+          { path: "/find-tutor/edit/:id", element: <FindTutorRequestPage /> },
+          { path: "/my-vouchers", element: <MyVouchersPage /> },
+        ],
+      },
+    ],
+  },
+
+  // Protected routes dành riêng cho gia sư
+  {
+    element: <ProtectedRoute allowedRoles={["tutor"]} />,
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          { path: "/my-classes", element: <MyClassesPage /> },
+          { path: "/class-invitations", element: <ClassInvitationsPage /> },
+          { path: "/my-reviews", element: <MyReviewsPage /> },
         ],
       },
     ],
@@ -67,7 +110,18 @@ const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { path: "/admin", element: <AdminDashboardPage /> },
+      { path: "/admin/users", element: <AdminUsersPage /> },
+      { path: "/admin/messages", element: <AdminMessagesPage /> },
       { path: "/admin/tutors", element: <TutorApprovalPage /> },
+      { path: "/admin/class-applications", element: <ClassApplicationsPage /> },
+      { path: "/admin/application-cancellations", element: <AdminApplicationCancellationsPage /> },
+      { path: "/admin/reviews", element: <AdminReviewsPage /> },
+      { path: "/admin/profile-changes", element: <AdminProfileChangesPage /> },
+      { path: "/admin/classes", element: <AdminClassesPage /> },
+      { path: "/admin/promos", element: <AdminPromosPage /> },
+      { path: "/admin/subjects", element: <AdminSubjectsPage /> },
+      { path: "/admin/trash", element: <AdminTrashPage /> },
+      { path: "/admin/settings", element: <AdminSettingsPage /> },
     ],
   },
 ]);

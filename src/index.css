@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-day-picker/dist/style.css";
 
 /* Map shadcn CSS variables → Tailwind v4 color utilities (tránh bg-popover không có màu / trong suốt) */
 @theme inline {
@@ -76,6 +77,9 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    /* Chặn cuộn ngang ngoài ý muốn trên mobile (dùng clip để không phá position:sticky).
+       Các vùng cần cuộn ngang có chủ đích vẫn dùng overflow-x-auto riêng. */
+    overflow-x: clip;
   }
 
   input:focus,
@@ -99,4 +103,76 @@
   [data-radix-collection-item] {
     cursor: pointer !important;
   }
+
+  button,
+  [role="button"],
+  a[href],
+  summary {
+    cursor: pointer;
+  }
+}
+/* react-day-picker v9: chỉ ghi đè CSS variables, không can thiệp layout/events */
+.rdp-root {
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-background-color: hsl(var(--accent));
+  --rdp-today-color: hsl(var(--primary));
+  --rdp-day-height: 36px;
+  --rdp-day-width: 36px;
+  --rdp-day_button-height: 32px;
+  --rdp-day_button-width: 32px;
+  --rdp-day_button-border-radius: 8px;
+}
+
+/* Fix chevron icons: Lucide dùng stroke không dùng fill */
+.rdp-chevron {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2px;
+}
+
+/* ============================================================
+   Auth UI — ambient motion (blob trôi). Hiệu ứng vào (entrance)
+   do AOS đảm nhiệm qua data-aos; ở đây chỉ giữ chuyển động lặp.
+   ============================================================ */
+@keyframes wtc-float {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(10px, -22px); }
+}
+
+.animate-float-slow   { animation: wtc-float 9s  ease-in-out infinite; }
+.animate-float-slower { animation: wtc-float 13s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .animate-float-slower {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   Auth UI — premium surface system (scoped to .auth-shell)
+   ============================================================ */
+
+/* Font có cá tính cho khu xác thực (không đổi font toàn app) */
+.auth-shell {
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Bật lại focus ring cho input trong auth (accessibility) — ghi đè rule
+   global tắt ring ở trên bằng selector đặc hiệu hơn + !important. */
+.auth-shell input:focus-visible,
+.auth-shell textarea:focus-visible {
+  box-shadow: 0 0 0 3px rgb(30 58 95 / 0.16) !important;
+}
+
+/* Grain overlay — phá độ phẳng digital. Đặt opacity qua Tailwind trên element. */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
 }

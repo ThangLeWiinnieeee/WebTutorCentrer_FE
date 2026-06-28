@@ -2,10 +2,49 @@ import axiosInstance from "@/services/axiosInstance";
 import API_ENDPOINTS from "@/constants/apiEndpoints";
 
 const adminService = {
-  getPendingTutors: () => axiosInstance.get(API_ENDPOINTS.ADMIN.TUTORS_PENDING),
+  getDashboardStats: () => axiosInstance.get(API_ENDPOINTS.ADMIN.DASHBOARD_STATS),
+  getPendingTutors: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.TUTORS_PENDING, { params }),
   approveTutor: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.TUTOR_APPROVE(id)),
   rejectTutor: (id, rejectionReason) =>
     axiosInstance.patch(API_ENDPOINTS.ADMIN.TUTOR_REJECT(id), { rejectionReason }),
+  getUsers: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.USERS, { params }),
+  updateUser: (id, payload) => axiosInstance.patch(API_ENDPOINTS.ADMIN.USER_UPDATE(id), payload),
+  updateUserStatus: (id, isActive) =>
+    axiosInstance.patch(API_ENDPOINTS.ADMIN.USER_STATUS(id), { isActive }),
+  deleteUser: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.USER_DELETE(id)),
+  getClassApplications: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASS_APPLICATIONS, { params }),
+  getClassApplicationStats: (params) =>
+    axiosInstance.get(API_ENDPOINTS.ADMIN.CLASS_APPLICATIONS_STATS, { params }),
+  approveClassApplication: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.CLASS_APPLICATION_APPROVE(id)),
+  rejectClassApplication: (id, rejectionReason) =>
+    axiosInstance.patch(API_ENDPOINTS.ADMIN.CLASS_APPLICATION_REJECT(id), { rejectionReason }),
+  getAdminClasses: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASSES, { params }),
+  getAdminClassDetail: (id) => axiosInstance.get(API_ENDPOINTS.ADMIN.CLASS_DETAIL(id)),
+  deleteAdminClass: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.CLASS_DELETE(id)),
+  getTrashCounts: () => axiosInstance.get(API_ENDPOINTS.ADMIN.TRASH_COUNTS),
+  getTrashItems: (type, params) => axiosInstance.get(API_ENDPOINTS.ADMIN.TRASH_LIST(type), { params }),
+  restoreTrashItem: (type, id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.TRASH_RESTORE(type, id)),
+  purgeTrashItem: (type, id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.TRASH_PURGE(type, id)),
+  getProfileChanges: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.PROFILE_CHANGES, { params }),
+  approveProfileChange: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.PROFILE_CHANGE_APPROVE(id)),
+  rejectProfileChange: (id, rejectionReason) =>
+    axiosInstance.patch(API_ENDPOINTS.ADMIN.PROFILE_CHANGE_REJECT(id), { rejectionReason }),
+  getApplicationCancellations: (params) =>
+    axiosInstance.get(API_ENDPOINTS.ADMIN.APPLICATION_CANCELLATIONS, { params }),
+  approveCancellation: (id) => axiosInstance.patch(API_ENDPOINTS.ADMIN.CANCELLATION_APPROVE(id)),
+  rejectCancellation: (id, rejectionReason) =>
+    axiosInstance.patch(API_ENDPOINTS.ADMIN.CANCELLATION_REJECT(id), { rejectionReason }),
+  getPromos: (params) => axiosInstance.get(API_ENDPOINTS.PROMOS.LIST, { params }),
+  createPromo: (payload) => axiosInstance.post(API_ENDPOINTS.PROMOS.CREATE, payload),
+  updatePromo: (id, payload) => axiosInstance.patch(API_ENDPOINTS.PROMOS.UPDATE(id), payload),
+  deletePromo: (id) => axiosInstance.delete(API_ENDPOINTS.PROMOS.DELETE(id)),
+  getSubjects: (params) => axiosInstance.get(API_ENDPOINTS.SUBJECTS.ADMIN_LIST, { params }),
+  createSubject: (payload) => axiosInstance.post(API_ENDPOINTS.SUBJECTS.CREATE, payload),
+  updateSubject: (id, payload) => axiosInstance.patch(API_ENDPOINTS.SUBJECTS.UPDATE(id), payload),
+  getReviewTutors: (params) => axiosInstance.get(API_ENDPOINTS.ADMIN.REVIEW_TUTORS, { params }),
+  getTutorReviews: (tutorId, params) =>
+    axiosInstance.get(API_ENDPOINTS.ADMIN.REVIEW_TUTOR_REVIEWS(tutorId), { params }),
+  deleteReview: (id) => axiosInstance.delete(API_ENDPOINTS.ADMIN.REVIEW_DELETE(id)),
 };
 
 export default adminService;
